@@ -1,0 +1,43 @@
+# Python cache and artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Model artifacts and MLflow runs
+model/
+mlruns/
+
+# Local data copies (if you create a top-level data/ for convenience)
+data/
+
+# Logs and exploratory/generated docs (internal, not needed for phData repo)
+logs/
+Generated_Docs/
+SESSION_*.md
+master_protocol_documentation_sub_protocol.md
+
+# Downloaded reference docs (we keep only phData challenge materials)
+Reference_Docs/FastAPI_Documentation/
+Reference_Docs/Docker_Documentation/
+Reference_Docs/Pydantic_Documentation/
+Reference_Docs/Scikit-Learn_Documentation/
+Reference_Docs/Uvicorn_Documentation/
+Reference_Docs/pytest_Documentation/
+Reference_Docs/REFERENCE_DOCUMENTATION_INDEX.md

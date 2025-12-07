@@ -1,0 +1,99 @@
+An agentic-friendly copilot-instructions.md starting prompt for creating a regulated, progressive and transparent environment for projects being started in VSCode with CoPilot. Currently using with Sonnet 4.5.
+
+Establishes:
+Master Protocol and index
+Master log and index
+MCP/tool/reference index
+Task and issue related logs
+Sub protocols, incuding:
+"analysis_sub_protocol.md" "research_sub_protocol.md"
+"generation_sub_protocol.md" "logging_sub_protocol.md" "tool_identification_sub_protocol.md" "reference_material_identification_sub_protocol.md" "tool_and_reference_material_request_sub_protocol.md"
+
+Note: Replace [Project Specifics] in brackets
+
+
+1. read every word of the following. Do not sample, do not read just the first part. read every single word.
+
+ 
+
+2. In copilot-instructions.md I would like to establish a system of protocols and processes:
+
+ 
+
+Consider this discussion as an example of what I would like to establish:
+
+ 
+
+###
+
+ 
+
+"As I have my conversation with Sonnet4.5, this window that we're having the conversation in has a limited context memory. So I can be talking to it about my "Main Idea" and in my Main Idea, I'm working on the "Main Program" and in there I'm diving deep on the Main Function and within that I'm experimenting with how to structure it all and what not, and I finally finish this small sub-task that took way longer than we expected. And I think, thank god I'm done with that, let me move back up and see how this all works in the Main Function, and it's like... "What main function?..."
+
+"The one we were working on in the Main Program..."
+
+"... What main Program? Would you like to make a program like this? Here are some ideas..."
+
+
+So we have to have a system and a place (the more "well researched, thought out and organized", the better. I copied and pasted that straight from my own protocols. I encourage you to specifically use that phrasing, "well researched, thought out and organized" in your prompting as you have it create these spaces) to memorialize these processes so it doesn't get off the rails or forget what it's doing or where it's at.
+
+
+Also, you will eventually reach the end of the window's memory and it will start to malfunction and eventually stop. To avoid this, I've found the best thing to do is to have a restart protocol. I tell Sonnet 4.5 "Engage restart_protocol.md, I am about to restart", it looks at the restart protocol and knows that it needs to:
+
+look back through the entire chat history, ensure all of it has been properly recorded to logs and that those logs have been properly organized, tracked and updated per our processes
+
+summarize, index and document all of that very comprehensively and in fine detail
+
+Consult the Overall_Plan.md and analyze where we're at, where we've come from and where we're going. Come up with a detailed plan of what our next steps are and ensure we get back on track wioth those plans by coming up with the perfect prompt for me to copy and then paste here after we restart. In that should be an index to all of our important files, references and indexes including [x, y, z]
+
+This way, you can restart, refresh the context window memory and get a nice, speedy, fully functioning window to continue in, and the LLM gets a massive wealth of context and an efficient means of accessing it"
+
+ 
+
+###
+
+ 
+
+I would like to create this structure within our copilot-instructions.md and ensure that copilot/sonnet checks in with these rules and selects the appropriate protocols with every single prompt interaction.
+
+ 
+
+3. Among other things, copilot-instructions.md should refer to the master_protocol.md (henceforth for the rest of [PROJECT NAME] dev, "master_protocol.md" will be referred to as "the master protocol" or "master protocol")
+
+ 
+
+The master protocol should consist of the following:
+
+a. reference to an anti sampling directive (and the anti sampling directive itself) that strictly prohibits you from only reading the first 100 lines or sampling pieces of a file and generating in your memory what you think the rest is. No matter the length of the file. Anything over 10,000 lines, alert me and get authorization first. We need 100% fidelity to the contents of every single file in order to find 100% of the relationships and 100% of the dependencies and be able to map and document 100% of the capabilities and functionality.
+
+ 
+
+b. The prime directive that our process is to maintain its focus on as the goal. This will henceforth be referred to as "The prime directive" or "prime directive". [PROJECT NAME]'s prime directive will be:
+
+[PROJECT PRIME DIRECTIVE]
+
+(Example from my ALARM - Automated Legacy App Refactoring and Modernization piece:
+
+Using the available files in the workspace, try to start from the launcher or as close to it as possible, then crawl the entire launcher or file mapping and documenting every function and every dependency, then using that information to reproduce the same process in the dependent files/code/functions, etc... The success criteria should be that once ALARM is run on a repo, the results should be a library of documents, one for each file (sub docs) and overall summaries of steps/processes/etc... Every nook and cranny of the original application should be known and understood. There is absolutely 0% room for any file, function or dependency of the target app to be unknown. If you've discovered something new, keep going and keep discovering, mapping and documenting and do not stop until you can no longer find, map, document anything new about the target app. All of this data needs to be detailed, thorough and comprehensive enough to rebuild the app in a more modernized tech stack.)
+
+ 
+
+c. Sub-Protocol, master log and MCP/tool index. The master protocol should serve as a central index that indexes and tracks the available sub protocols and what's in them and when they were last updated. The sub protocols should include "analysis_sub_protocol.md" (Analyze every single word of every single result thoroughly and in full 100% comprehensiveness), "research_sub_protocol.md" (Identify tools and reference materials needed, ask for any that are missing, and then use those to comprehensively and in 100% full detail and granularity), "generation_sub_protocol.md" (special characters and emojis are STRICTLY FORBIDDEN in this workspace and on this project in it's entirety. ensure that special characters and emojis are NEVER used unless expressly necessary, then get my authorization first), "logging_sub_protocol.md" (log everything we do. Every single prompt and prompt response should be logged to a specific issue log or a log that is tracking everything for a particular step and the date and time should be in the markdown file's name. At the end of each prompt response, ensure you have updated all applicable logs. Keep all of these logs in a central location where the master log can track them and the master protocol can most efficiently index and recall them ), "tool_identification_sub_protocol.md" (when called upon, look for the most effective tools and MCP's to help you accomplish this), "reference_material_identification_sub_protocol.md" (when called upon, look for the most effective reference materials, SDK's and MCP's to help you accomplish this), "tool_and_reference_material_request_sub_protocol.md" (acquire or request whatever tools and reference materials you need to complete your task) and whatever other _sub_protocol.md files you can think of that will be useful)).
+
+ 
+
+4.  the master protocol should also refer to the "master_log.md" (which needs to be created as well and will henceforth be referred to as "the master log" or "master log") which will index and track all of the logs, what's in them and when they were last updated.
+
+ 
+
+5. I would like you to analyze all of this, find opportunities for better organization and ways to keep you on track and give you the best tools available to accomplish the prime directive
+
+ 
+
+ 
+
+ 
+
+Follow up prompt:
+
+Great. Now memorialize everything we've done up to now in an [PROJECT NAME]_Initial_setup_[DATE].md file and update the master log to reflect the new log's existence and status.
