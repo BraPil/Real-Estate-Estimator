@@ -1,0 +1,64 @@
+# Docker Compose configuration for Real Estate Price Predictor
+#
+# Usage:
+#   docker-compose up              # Start all services
+#   docker-compose up -d           # Start in detached mode
+#   docker-compose up --build      # Rebuild and start
+#   docker-compose down            # Stop all services
+#   docker-compose logs -f api     # View API logs
+
+version: '3.8'
+
+services:
+  # Main API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: real-estate-api
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=INFO
+      - DEBUG=false
+    volumes:
+      # Mount model directory for easy updates without rebuilding
+      - ./model:/app/model:ro
+      # Mount data directory
+      - ./data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/api/v1/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # MLflow tracking server (optional - for experiment tracking)
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.9.2
+    container_name: real-estate-mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+    volumes:
+      - mlflow_data:/mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    profiles:
+      - mlflow  # Only start with: docker-compose --profile mlflow up
+
+volumes:
+  mlflow_data:
+    driver: local
+
+# Networks (using default bridge network)
+# For production, consider creating a dedicated network
