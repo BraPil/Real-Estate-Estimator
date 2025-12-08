@@ -2,7 +2,7 @@
 
 **Project:** Real Estate Price Predictor  
 **Date:** 2025-12-08  
-**Status:** V2.1.x Complete, V2.3 In Progress (skipping V2.2 for now)
+**Status:** V2.3 Complete, V2.4 Next
 
 ---
 
@@ -13,16 +13,17 @@
 | V2.1 | Feature Expansion | ✅ **COMPLETE** | +10 features, MAE -12% |
 | V2.1.1 | Full Features Endpoint | ✅ **COMPLETE** | `/predict-full` - all 17 features, no zipcode |
 | V2.1.2 | Adaptive Routing | ⏸️ **LOW PRIORITY** | Explored but deferred - `/predict-full` is sufficient |
-| V2.2 | Feature Engineering | ⏸️ DEFERRED | Skipping for now - V2.3 has higher ROI |
-| V2.3 | Hyperparameter Tuning | 🔜 **IN PROGRESS** | Optimal k, weights, distance metric |
-| V2.4 | Model Alternatives | 📋 PLANNED | Random Forest, XGBoost comparison |
+| V2.2 | Feature Engineering | ⏸️ DEFERRED | Skipping for now - can revisit after V2.4 |
+| V2.3 | Hyperparameter Tuning | ✅ **COMPLETE** | **MAE -5.9%**, manhattan + distance-weighted |
+| V2.4 | Model Alternatives | 🔜 **NEXT** | Random Forest, XGBoost comparison |
 | V2.5 | Robust Evaluation | 📋 PLANNED | K-fold CV, confidence intervals |
 | V2.6 | Fresh Data (Future) | 📋 PLANNED | Updated housing data (if available) |
 
 ### Decision Log (2025-12-08)
 - **V2.1.2 Adaptive Routing:** Discovered price-tier pattern (confirmed statistically) but routing accuracy too low (52%) to beat always-use-`/predict-full`. Documented as interesting finding for future exploration.
-- **V2.2 Feature Engineering:** Deferred in favor of V2.3. Hyperparameter tuning expected to provide cleaner, more defensible improvements.
-- **V2.3 Hyperparameter Tuning:** Starting now - proper cross-validation avoids test-set peeking issues from V2.1.2 exploration.
+- **V2.2 Feature Engineering:** Deferred in favor of V2.3. Can revisit after V2.4 if needed.
+- **V2.3 Hyperparameter Tuning:** ✅ COMPLETE - GridSearchCV found optimal params: `n_neighbors=7, weights=distance, metric=manhattan`. MAE improved from $89,769 to $84,494 (-5.9%).
+- **V2.4 Model Alternatives:** Starting next - compare KNN to tree-based models.
 
 ---
 
