@@ -13,11 +13,19 @@ Features:
 Usage:
     python src/train.py
     python src/train.py --k-neighbors 7 --test-size 0.3
-    python src/train.py --experiment-name "housing-v2" --run-name "knn-tuning"
+    python src/train.py --experiment-name "real-estate-v2" --run-name "v2.1-all-features"
+
+Version History:
+    V1: 7 home features + 26 demographics = 33 total (R² = 0.728)
+    V2.1: 18 home features + 26 demographics = 44 total (expanded feature set)
 
 Bug Fix Applied:
     - Corrected DEMOGRAPHICS_PATH from kc_house_data.csv to zipcode_demographics.csv
     (Original bug in Reference_Docs/mle-project-challenge-2/create_model.py line 14)
+
+V2.1 Feature Expansion:
+    Added features: lat, long, waterfront, view, condition, grade, 
+    yr_built, yr_renovated, sqft_living15, sqft_lot15
 """
 
 import argparse
@@ -49,10 +57,51 @@ except ImportError:
 SALES_PATH = "data/kc_house_data.csv"  # Path to CSV with home sale data
 DEMOGRAPHICS_PATH = "data/zipcode_demographics.csv"  # FIXED: was incorrectly kc_house_data.csv
 
-# Columns from sales data to use as features (price is target, zipcode for joining)
+# ==============================================================================
+# V2.1 FEATURE EXPANSION: All 18 columns from kc_house_data.csv
+# ==============================================================================
+# V1 used: bedrooms, bathrooms, sqft_living, sqft_lot, floors, sqft_above, sqft_basement
+# V2.1 adds: lat, long, waterfront, view, condition, grade, yr_built, yr_renovated,
+#            sqft_living15, sqft_lot15
+#
+# Why these features matter:
+# - waterfront: Waterfront homes in Seattle can be 50-100% more expensive
+# - grade: Construction quality (1-13) is highly predictive
+# - view: View quality premium is significant in hilly Seattle
+# - lat/long: Captures location value beyond zipcode demographics
+# - condition: Well-maintained homes fetch higher prices
+# - sqft_living15/sqft_lot15: Neighborhood context ("big/small for the area")
+# - yr_built/yr_renovated: Age and renovation status affect value
+# ==============================================================================
+
 SALES_COLUMN_SELECTION = [
-    'price', 'bedrooms', 'bathrooms', 'sqft_living', 'sqft_lot', 'floors',
-    'sqft_above', 'sqft_basement', 'zipcode'
+    # Target variable
+    'price',
+    
+    # V1 features (structural)
+    'bedrooms', 'bathrooms', 'sqft_living', 'sqft_lot', 'floors',
+    'sqft_above', 'sqft_basement',
+    
+    # V2.1 NEW: Property characteristics (high predictive value)
+    'waterfront',   # Binary: 0/1 - waterfront premium
+    'view',         # Ordinal: 0-4 - view quality
+    'condition',    # Ordinal: 1-5 - maintenance state
+    'grade',        # Ordinal: 1-13 - construction quality
+    
+    # V2.1 NEW: Age features
+    'yr_built',     # Year house was built
+    'yr_renovated', # Year of last renovation (0 if never)
+    
+    # V2.1 NEW: Spatial features
+    'lat',          # Latitude
+    'long',         # Longitude
+    
+    # V2.1 NEW: Neighborhood context
+    'sqft_living15', # Avg living sqft of 15 nearest neighbors
+    'sqft_lot15',    # Avg lot sqft of 15 nearest neighbors
+    
+    # Join key (dropped after merge)
+    'zipcode'
 ]
 
 OUTPUT_DIR = "model"  # Directory for output artifacts
@@ -155,7 +204,7 @@ def evaluate_model(
 def train_model(
     k_neighbors: int = 5,
     test_size: float = 0.25,
-    experiment_name: str = "real-estate-v1",
+    experiment_name: str = "real-estate-v2",
     run_name: str = None
 ) -> Tuple[pipeline.Pipeline, dict]:
     """Train the model with MLflow tracking.
@@ -260,12 +309,19 @@ def train_model(
         metrics_output = {
             **all_metrics,
             "timestamp": datetime.now().isoformat(),
+            "model_version": "v2.1",  # V2.1 = expanded features
             "k_neighbors": k_neighbors,
             "test_size": test_size,
             "n_samples": len(X),
             "n_features": len(feature_names),
+            "n_home_features": 18,  # All columns from kc_house_data.csv
+            "n_demographic_features": len(feature_names) - 18,
             "data_vintage": "2014-2015",
             "data_location": "King County (Seattle), WA",
+            "features_added_in_v2.1": [
+                "lat", "long", "waterfront", "view", "condition", "grade",
+                "yr_built", "yr_renovated", "sqft_living15", "sqft_lot15"
+            ],
         }
         with open(metrics_path, 'w') as f:
             json.dump(metrics_output, f, indent=2)
@@ -377,7 +433,7 @@ def parse_args():
     parser.add_argument(
         "--experiment-name", "-e",
         type=str,
-        default="real-estate-v1",
+        default="real-estate-v2",
         help="MLflow experiment name"
     )
     parser.add_argument(

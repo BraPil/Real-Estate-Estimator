@@ -46,9 +46,22 @@ MODEL_PATH = "model/model.pkl"
 FEATURES_PATH = "model/model_features.json"
 DEFAULT_OUTPUT = "model/evaluation_report.json"
 
+# V2.1+ uses all 17 home features (expanded from 7 in V1)
 SALES_COLUMN_SELECTION = [
-    'price', 'bedrooms', 'bathrooms', 'sqft_living', 'sqft_lot', 'floors',
-    'sqft_above', 'sqft_basement', 'zipcode'
+    'price',
+    # V1 structural features (7)
+    'bedrooms', 'bathrooms', 'sqft_living', 'sqft_lot', 'floors',
+    'sqft_above', 'sqft_basement',
+    # V2.1 property characteristics (4)
+    'waterfront', 'view', 'condition', 'grade',
+    # V2.1 age features (2)
+    'yr_built', 'yr_renovated',
+    # V2.1 spatial features (2)
+    'lat', 'long',
+    # V2.1 neighborhood context (2)
+    'sqft_living15', 'sqft_lot15',
+    # Join key
+    'zipcode'
 ]
 
 RANDOM_STATE = 42
@@ -57,32 +70,25 @@ RANDOM_STATE = 42
 # DATA LOADING
 # ==============================================================================
 
-def load_test_data(test_size: float = 0.25) -> Tuple[pd.DataFrame, pd.Series]:
+def load_test_data(test_size: float = 0.20) -> Tuple[pd.DataFrame, pd.Series]:
     """Load and prepare test data using same split as training.
 
     Args:
-        test_size: Fraction used for test set (must match training)
+        test_size: Fraction used for test set (must match training - V2.3 uses 0.20)
 
     Returns:
         Tuple of (X_test, y_test)
     """
     from sklearn.model_selection import train_test_split
     
-    # Load sales data
-    sales = pd.read_csv(
-        SALES_PATH,
-        usecols=SALES_COLUMN_SELECTION,
-        dtype={'zipcode': str}
-    )
+    # Load sales data (must match tune.py exactly)
+    sales = pd.read_csv(SALES_PATH, usecols=SALES_COLUMN_SELECTION)
     
     # Load demographics
-    demographics = pd.read_csv(
-        DEMOGRAPHICS_PATH,
-        dtype={'zipcode': str}
-    )
+    demographics = pd.read_csv(DEMOGRAPHICS_PATH)
     
-    # Merge and prepare
-    merged = sales.merge(demographics, how="left", on="zipcode").drop(columns="zipcode")
+    # Merge and prepare (inner join to match tune.py)
+    merged = sales.merge(demographics, on='zipcode', how='inner').drop(columns='zipcode')
     y = merged.pop('price')
     X = merged
     

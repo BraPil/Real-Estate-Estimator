@@ -5,10 +5,15 @@ This service handles:
 - Loading and caching demographics data
 - Enriching home features with zipcode demographics
 - Providing average demographics for minimal predictions
+- Providing default V2.1 features for minimal predictions
 - Validating zipcodes against King County
 
 The demographics data is loaded once at startup and cached in memory
 for fast lookup during predictions.
+
+V2.1 Update:
+    Added default values for the 10 new home features used in V2.1
+    These are used when the minimal endpoint is called (which only provides 7 features)
 """
 
 import logging
@@ -21,6 +26,33 @@ import pandas as pd
 from src.config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
+
+# ==============================================================================
+# V2.1 DEFAULT VALUES FOR MINIMAL PREDICTIONS
+# ==============================================================================
+# These are King County averages/defaults for the 10 features added in V2.1
+# Used when the minimal endpoint is called (which only provides 7 structural features)
+# Computed from kc_house_data.csv training data
+
+V21_DEFAULT_FEATURES = {
+    # Property characteristics (use mode/typical values)
+    "waterfront": 0,          # Most homes are not waterfront (99%+ are 0)
+    "view": 0,                # Most homes have no special view (mode = 0)
+    "condition": 3,           # Average condition (1-5 scale, mode ~3)
+    "grade": 7,               # Average construction grade (1-13 scale, mode ~7)
+    
+    # Age features (use median values from 2014-2015 data)
+    "yr_built": 1975,         # Median year built in King County
+    "yr_renovated": 0,        # Most homes never renovated (mode = 0)
+    
+    # Spatial features (use King County centroid)
+    "lat": 47.5601,           # Approximate center of King County
+    "long": -122.2139,        # Approximate center of King County
+    
+    # Neighborhood context (use median values)
+    "sqft_living15": 1986,    # Median neighbor living sqft
+    "sqft_lot15": 7620,       # Median neighbor lot sqft
+}
 
 
 class FeatureService:
@@ -162,20 +194,29 @@ class FeatureService:
         self,
         home_features: Dict[str, float]
     ) -> Dict[str, float]:
-        """Enrich home features with average demographics.
+        """Enrich home features with average demographics and V2.1 defaults.
         
         Used when no zipcode is provided (minimal prediction).
         
+        V2.1 Update: Also fills in default values for the 10 new V2.1 features
+        (waterfront, view, condition, grade, yr_built, yr_renovated, lat, long,
+        sqft_living15, sqft_lot15) if they are not provided in home_features.
+        
         Args:
-            home_features: Dictionary of home-level features
+            home_features: Dictionary of home-level features (may be 7 or 17)
             
         Returns:
-            Dictionary with home features plus average demographic features
+            Dictionary with all 17 home features plus 26 demographic features
         """
-        demographics = self.get_average_demographics()
+        # Start with V2.1 default features
+        enriched = V21_DEFAULT_FEATURES.copy()
         
-        # Merge home features with average demographics
-        enriched = {**home_features, **demographics}
+        # Override with any provided home features
+        enriched.update(home_features)
+        
+        # Add average demographics
+        demographics = self.get_average_demographics()
+        enriched.update(demographics)
         
         return enriched
     
