@@ -35,13 +35,14 @@ logger = logging.getLogger(__name__)
 class ModelService:
     """Service for model loading and prediction.
     
-    This service loads the trained sklearn model (RobustScaler + KNeighborsRegressor)
+    This service loads the trained sklearn model (Pipeline with scaler + regressor)
     and provides methods for making predictions.
     
     Attributes:
         model: The loaded sklearn Pipeline
         feature_names: Ordered list of feature names expected by the model
-        model_version: Version string for the loaded model
+        model_version: Version string for the loaded model (e.g., "v2.4.1")
+        model_type: Type of model (e.g., "XGBRegressor (tuned)")
         is_loaded: Whether the model is currently loaded
     """
     
@@ -55,6 +56,7 @@ class ModelService:
         self.model = None
         self.feature_names: List[str] = []
         self.model_version: str = "unknown"
+        self.model_type: str = "unknown"
         self.is_loaded: bool = False
         self._load_model()
     
@@ -101,13 +103,27 @@ class ModelService:
         with open(features_path, "r") as f:
             self.feature_names = json.load(f)
         
-        # Detect model version based on feature count
-        # V1: 33 features (7 home + 26 demographic)
-        # V2.1: 43 features (17 home + 26 demographic)
-        if len(self.feature_names) >= 40:
-            self.model_version = "v2.1"
+        # Detect model version from metrics.json if available
+        metrics_path = model_path.parent / "metrics.json"
+        if metrics_path.exists():
+            try:
+                with open(metrics_path, "r") as f:
+                    metrics = json.load(f)
+                self.model_version = metrics.get("version", "unknown")
+                self.model_type = metrics.get("model_type", "unknown")
+                logger.info("Loaded model info from metrics.json: %s (%s)", 
+                           self.model_version, self.model_type)
+            except Exception as e:
+                logger.warning("Could not read metrics.json: %s", e)
+                self.model_version = "v2.1" if len(self.feature_names) >= 40 else "v1"
         else:
-            self.model_version = "v1"
+            # Fallback: detect version based on feature count
+            # V1: 33 features (7 home + 26 demographic)
+            # V2.1+: 43 features (17 home + 26 demographic)
+            if len(self.feature_names) >= 40:
+                self.model_version = "v2.1"
+            else:
+                self.model_version = "v1"
         
         self.is_loaded = True
         logger.info(
@@ -227,6 +243,7 @@ class ModelService:
         return {
             "is_loaded": self.is_loaded,
             "model_version": self.model_version,
+            "model_type": self.model_type,
             "feature_count": len(self.feature_names),
             "feature_names": self.feature_names,
         }

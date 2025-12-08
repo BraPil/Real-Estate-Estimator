@@ -15,7 +15,7 @@
 | V2.1.2 | Adaptive Routing | ⏸️ **LOW PRIORITY** | Explored but deferred - `/predict-full` is sufficient |
 | V2.2 | Feature Engineering | ⏸️ DEFERRED | Skipping for now - can revisit after V2.4 |
 | V2.3 | Hyperparameter Tuning | ✅ **COMPLETE** | **MAE -5.9%**, manhattan + distance-weighted |
-| V2.4 | Model Alternatives | 🔜 **NEXT** | Random Forest, XGBoost comparison |
+| V2.4 | Model Alternatives | ✅ **COMPLETE** | XGBoost wins: MAE $67,041 (-20.7%) |
 | V2.5 | Robust Evaluation | 📋 PLANNED | K-fold CV, confidence intervals |
 | V2.6 | Fresh Data (Future) | 📋 PLANNED | Updated housing data (if available) |
 
