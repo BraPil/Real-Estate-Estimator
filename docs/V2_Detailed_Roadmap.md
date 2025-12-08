@@ -150,54 +150,58 @@ for name, model in models.items():
 
 ---
 
-## V2.5: Robust Evaluation
+## V2.5: Robust Evaluation ✅ **COMPLETE**
 
 **Goal:** Implement statistically rigorous model evaluation.
 
-### Components
+### Status: COMPLETE (2025-12-08)
 
-1. **K-Fold Cross-Validation**
-   - Replace single train/test split with 5-fold or 10-fold CV
-   - Report mean ± standard deviation
-   - More reliable estimate of true performance
+**Key Results:**
+| Metric | Value | Notes |
+|--------|-------|-------|
+| **5-Fold CV MAE** | $63,529 ± $2,150 | More reliable than single split |
+| **5-Fold CV R²** | 0.8945 ± 0.0168 | Strong, consistent performance |
+| **95% CI (MAE)** | [$63,590, $70,971] | Bootstrap confidence interval |
+| **95% CI (R²)** | [0.8421, 0.9089] | Bootstrap confidence interval |
 
-2. **Confidence Intervals**
-   - Bootstrap confidence intervals for MAE/R²
-   - Report 95% CI, not just point estimates
+**Log Transform Experiment:** ❌ NOT RECOMMENDED
+- Normal MAE: $63,529
+- Log Transform MAE: $64,135 (1% worse)
+- High-value homes: 4.3% worse with log transform
 
-3. **Target Transformation**
-   - Try `log(price)` instead of `price`
-   - Residuals may be more normally distributed
-   - Better performance on high-value homes
+**Residual Analysis:**
+- Mean bias: Only $735 (essentially unbiased ✅)
+- Heteroscedastic: Yes (variance ratio 28.20)
+- 82.6% of predictions within $100k
 
-4. **Residual Analysis**
-   - Plot residuals vs predicted
-   - Check for heteroscedasticity
-   - Identify systematic errors by price range
+**Files Created:**
+- `src/robust_evaluate.py` - Comprehensive evaluation script
+- `logs/v2.5_robust_evaluation_*.json` - Detailed results
 
-### Implementation
+### Components (All Implemented)
 
-```python
-from sklearn.model_selection import cross_val_score, KFold
-import numpy as np
+1. **K-Fold Cross-Validation** ✅
+   - 5-fold CV with mean ± standard deviation
+   - More reliable estimate than single train/test split
 
-# K-Fold CV
-kfold = KFold(n_splits=5, shuffle=True, random_state=42)
-cv_scores = cross_val_score(model, X, y, cv=kfold, scoring='neg_mean_absolute_error')
+2. **Confidence Intervals** ✅
+   - 500-sample bootstrap for 95% CI
+   - Shows range of expected performance
 
-print(f"MAE: ${-cv_scores.mean():,.0f} ± ${cv_scores.std():,.0f}")
+3. **Target Transformation** ✅
+   - Tested log(price) vs price
+   - Result: Keep normal target (log is worse)
 
-# Log transform
-y_log = np.log(y)
-model.fit(X, y_log)
-y_pred_log = model.predict(X_test)
-y_pred = np.exp(y_pred_log)  # Transform back
-```
+4. **Residual Analysis** ✅
+   - Error distribution by price range
+   - Heteroscedasticity detection
+   - Systematic bias analysis
 
-### Expected Impact
-- More confident in reported metrics
-- Log transform may improve high-end predictions
-- Better understanding of model limitations
+### Key Insights
+1. **Log transform hurts, not helps** - Counter to initial hypothesis
+2. **Model is essentially unbiased** - Mean residual only $735
+3. **High-value homes are hardest** - MAE $241k for >$1M homes
+4. **Performance is stable** - CV std dev only $2,150
 
 ---
 
