@@ -2,11 +2,18 @@
 Prediction API endpoints for the Real Estate Price Predictor.
 
 Endpoints:
-    GET  /health          - Health check
-    POST /predict         - Full prediction with demographics lookup
-    POST /predict-minimal - Prediction using only required home features (BONUS)
+    GET  /health              - Health check
+    POST /predict             - Full prediction with demographics lookup (GOLD STANDARD)
+    POST /predict-minimal     - Prediction using only 7 home features (BONUS)
+    POST /predict-full        - Prediction using all 17 home features (V2.1.1 Experiment)
+    POST /predict-adaptive    - Adaptive tier-based routing (V2.1.2 Experiment)
 
 All endpoints include data vintage warnings and metadata in responses.
+
+V2.1.2 Discovery:
+    Empirical analysis showed that /predict-minimal is more accurate for homes
+    under $400K, while /predict-full is better for homes over $400K. The 
+    /predict-adaptive endpoint implements this insight.
 """
 
 import logging
@@ -22,6 +29,7 @@ from src.models import (
     HealthResponse,
     PredictionRequest,
     PredictionRequestMinimal,
+    PredictionRequestFullFeatures,
     PredictionResponse,
 )
 from src.services.feature_service import FeatureService, get_feature_service
@@ -254,6 +262,216 @@ async def predict_minimal(
         )
     except Exception as e:
         logger.error("Unexpected error in minimal prediction: %s", str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "PredictionError", "message": "An unexpected error occurred during prediction."}
+        )
+
+
+@router.post(
+    "/predict-full",
+    response_model=PredictionResponse,
+    responses={
+        400: {"model": ErrorResponse, "description": "Invalid input"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
+        500: {"model": ErrorResponse, "description": "Server error"}
+    },
+    summary="Predict Home Price (All 17 Features) - V2.1.1 EXPERIMENT",
+    description="""
+    **EXPERIMENTAL ENDPOINT V2.1.1**: Predict home price using all 17 home features WITHOUT zipcode.
+    
+    This endpoint accepts all 17 home features that the V2.1 model uses,
+    but does NOT require a zipcode. Uses average King County demographics.
+    
+    **Purpose:** Test if providing actual values for all 17 features improves
+    accuracy compared to /predict-minimal (which uses defaults for 10 features).
+    
+    **Hypothesis:** Actual feature values should give more accurate predictions
+    than using default values.
+    
+    **Use cases:**
+    - Properties outside King County where zipcode demographics don't apply
+    - Quick estimates when you have property details but not exact location
+    - Comparing accuracy vs /predict-minimal
+    """,
+    tags=["Prediction"]
+)
+async def predict_full_features(
+    request: PredictionRequestFullFeatures,
+    settings: Settings = Depends(get_settings),
+    model_service: ModelService = Depends(get_model_service),
+    feature_service: FeatureService = Depends(get_feature_service)
+) -> PredictionResponse:
+    """Predict home price using all 17 home features (V2.1.1 experimental endpoint).
+    
+    Uses average King County demographics (no zipcode required).
+    All 17 home features are provided by the user (no defaults).
+    
+    Args:
+        request: PredictionRequestFullFeatures with all 17 home features
+        
+    Returns:
+        PredictionResponse with predicted price and metadata
+    """
+    prediction_id = generate_prediction_id()
+    logger.info(
+        "Full-features prediction request received. ID: %s",
+        prediction_id
+    )
+    
+    try:
+        # Get all 17 home features (no defaults needed)
+        home_features = request.get_model_features()
+        
+        # Enrich with AVERAGE demographics only (no V21 defaults needed)
+        demographics = feature_service.get_average_demographics()
+        enriched_features = {**home_features, **demographics}
+        
+        # Make prediction
+        predicted_price = model_service.predict_single(enriched_features)
+        
+        logger.info(
+            "Full-features prediction completed. ID: %s, Price: $%.2f",
+            prediction_id,
+            predicted_price
+        )
+        
+        return PredictionResponse(
+            predicted_price=round(predicted_price, 2),
+            prediction_id=prediction_id,
+            model_version=model_service.model_version,
+            confidence_note="Prediction uses all 17 home features with King County average demographics. More accurate than /predict-minimal.",
+            data_vintage_warning=f"This model was trained on {settings.data_vintage_start}-{settings.data_vintage_end} data. For current valuations, consider market adjustments.",
+            timestamp=datetime.utcnow()
+        )
+        
+    except ValueError as e:
+        logger.error("Validation error in full-features prediction: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "ValidationError", "message": str(e)}
+        )
+    except Exception as e:
+        logger.error("Unexpected error in full-features prediction: %s", str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "PredictionError", "message": "An unexpected error occurred during prediction."}
+        )
+
+
+# Price tier threshold for adaptive routing (discovered via empirical analysis)
+ADAPTIVE_PRICE_THRESHOLD = 400_000
+
+
+@router.post(
+    "/predict-adaptive",
+    response_model=PredictionResponse,
+    responses={
+        400: {"model": ErrorResponse, "description": "Invalid input"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
+        500: {"model": ErrorResponse, "description": "Server error"}
+    },
+    summary="Predict Home Price (Adaptive Tier-Based) - V2.1.2 EXPERIMENT",
+    description=f"""
+    **EXPERIMENTAL ENDPOINT V2.1.2**: Adaptive prediction using price-tier routing.
+    
+    **Discovery:** Analysis showed that:
+    - `/predict-minimal` (7 features + defaults) is more accurate for homes < ${ADAPTIVE_PRICE_THRESHOLD:,}
+    - `/predict-full` (17 features) is more accurate for homes >= ${ADAPTIVE_PRICE_THRESHOLD:,}
+    
+    **Strategy:** This endpoint:
+    1. First estimates price using all 17 features
+    2. Routes to appropriate strategy based on estimated price tier
+    3. Returns the prediction with metadata about which strategy was used
+    
+    **Use case:** Best accuracy when zipcode is unknown but all property details available.
+    """,
+    tags=["Prediction"]
+)
+async def predict_adaptive(
+    request: PredictionRequestFullFeatures,
+    settings: Settings = Depends(get_settings),
+    model_service: ModelService = Depends(get_model_service),
+    feature_service: FeatureService = Depends(get_feature_service)
+) -> PredictionResponse:
+    """Predict home price using adaptive tier-based routing (V2.1.2 experiment).
+    
+    Uses initial estimate to determine price tier, then applies the
+    most accurate strategy for that tier.
+    
+    Args:
+        request: PredictionRequestFullFeatures with all 17 home features
+        
+    Returns:
+        PredictionResponse with predicted price and strategy metadata
+    """
+    prediction_id = generate_prediction_id()
+    logger.info(
+        "Adaptive prediction request received. ID: %s",
+        prediction_id
+    )
+    
+    try:
+        # Get all 17 home features
+        home_features = request.get_model_features()
+        
+        # Get average demographics
+        demographics = feature_service.get_average_demographics()
+        
+        # STEP 1: Make initial estimate with all 17 features (full strategy)
+        full_features = {**home_features, **demographics}
+        initial_estimate = model_service.predict_single(full_features)
+        
+        # STEP 2: Determine price tier
+        price_tier = "HIGH" if initial_estimate >= ADAPTIVE_PRICE_THRESHOLD else "LOW"
+        
+        # STEP 3: Apply tier-appropriate strategy
+        if price_tier == "HIGH":
+            # HIGH tier: use full features (already computed)
+            predicted_price = initial_estimate
+            strategy_used = "full_features"
+            strategy_reason = f"Estimated price ${initial_estimate:,.0f} >= ${ADAPTIVE_PRICE_THRESHOLD:,} threshold"
+        else:
+            # LOW tier: use minimal features + V21 defaults
+            minimal_features = {
+                "bedrooms": home_features["bedrooms"],
+                "bathrooms": home_features["bathrooms"],
+                "sqft_living": home_features["sqft_living"],
+                "sqft_lot": home_features["sqft_lot"],
+                "floors": home_features["floors"],
+                "sqft_above": home_features["sqft_above"],
+                "sqft_basement": home_features["sqft_basement"],
+            }
+            enriched = feature_service.enrich_features_with_average(minimal_features)
+            predicted_price = model_service.predict_single(enriched)
+            strategy_used = "minimal_with_defaults"
+            strategy_reason = f"Estimated price ${initial_estimate:,.0f} < ${ADAPTIVE_PRICE_THRESHOLD:,} threshold"
+        
+        logger.info(
+            "Adaptive prediction completed. ID: %s, Tier: %s, Strategy: %s, Price: $%.2f",
+            prediction_id,
+            price_tier,
+            strategy_used,
+            predicted_price
+        )
+        
+        return PredictionResponse(
+            predicted_price=round(predicted_price, 2),
+            prediction_id=prediction_id,
+            model_version=f"{model_service.model_version}-adaptive",
+            confidence_note=f"Adaptive routing: {price_tier} tier → {strategy_used}. {strategy_reason}.",
+            data_vintage_warning=f"This model was trained on {settings.data_vintage_start}-{settings.data_vintage_end} data. For current valuations, consider market adjustments.",
+            timestamp=datetime.utcnow()
+        )
+        
+    except ValueError as e:
+        logger.error("Validation error in adaptive prediction: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "ValidationError", "message": str(e)}
+        )
+    except Exception as e:
+        logger.error("Unexpected error in adaptive prediction: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "PredictionError", "message": "An unexpected error occurred during prediction."}

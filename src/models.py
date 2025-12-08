@@ -10,16 +10,18 @@ This module defines the data structures for:
 All models include validation, examples, and documentation for OpenAPI schema generation.
 
 Note on Request Schema:
-    The PredictionRequest accepts ALL 18 columns from future_unseen_examples.csv
-    as per requirements, even though the model only uses a subset of 7 home features
-    plus demographics joined by zipcode.
+    The PredictionRequest accepts ALL 18 columns from future_unseen_examples.csv.
     
     Columns accepted: bedrooms, bathrooms, sqft_living, sqft_lot, floors, waterfront,
     view, condition, grade, sqft_above, sqft_basement, yr_built, yr_renovated,
     zipcode, lat, long, sqft_living15, sqft_lot15
     
-    Columns used by model: bedrooms, bathrooms, sqft_living, sqft_lot, floors,
-    sqft_above, sqft_basement (plus 26 demographic features joined by zipcode)
+    V2.1 Model uses ALL 17 home features (all except zipcode which is used for 
+    demographics lookup) plus 26 demographic features = 43 total features.
+    
+Version History:
+    V1: 7 home features + 26 demographics = 33 features
+    V2.1: 17 home features + 26 demographics = 43 features (current)
 """
 
 from datetime import datetime
@@ -187,12 +189,16 @@ class PredictionRequest(BaseModel):
         return v
     
     def get_model_features(self) -> dict:
-        """Extract only the features used by the model.
+        """Extract the home features used by the model.
+        
+        V2.1: Returns all 17 home features (expanded from 7 in V1).
+        These are combined with 26 demographic features for prediction.
         
         Returns:
-            Dictionary with the 7 home features the model needs.
+            Dictionary with all 17 home features the model needs.
         """
         return {
+            # V1 structural features (7)
             "bedrooms": self.bedrooms,
             "bathrooms": self.bathrooms,
             "sqft_living": self.sqft_living,
@@ -200,6 +206,20 @@ class PredictionRequest(BaseModel):
             "floors": self.floors,
             "sqft_above": self.sqft_above,
             "sqft_basement": self.sqft_basement,
+            # V2.1 property characteristics (4)
+            "waterfront": self.waterfront,
+            "view": self.view,
+            "condition": self.condition,
+            "grade": self.grade,
+            # V2.1 age features (2)
+            "yr_built": self.yr_built,
+            "yr_renovated": self.yr_renovated,
+            # V2.1 spatial features (2)
+            "lat": self.lat,
+            "long": self.long,
+            # V2.1 neighborhood context (2)
+            "sqft_living15": self.sqft_living15,
+            "sqft_lot15": self.sqft_lot15,
         }
     
     model_config = {
@@ -319,6 +339,83 @@ class PredictionRequestMinimal(BaseModel):
                     "floors": 2.0,
                     "sqft_above": 1500,
                     "sqft_basement": 500
+                }
+            ]
+        }
+    }
+
+
+class PredictionRequestFullFeatures(BaseModel):
+    """Full home features request WITHOUT zipcode (V2.1.1 Experiment).
+    
+    EXPERIMENTAL ENDPOINT: This request requires ALL 17 home features
+    but does NOT require zipcode. Uses average demographics.
+    
+    This is to test if providing actual values for all 17 features
+    (vs. 7 features + defaults) improves accuracy when zipcode is unknown.
+    
+    Hypothesis: Actual values should be more accurate than defaults.
+    """
+    
+    # V1 structural features (7)
+    bedrooms: int = Field(..., ge=0, le=33, description="Number of bedrooms", examples=[3])
+    bathrooms: float = Field(..., ge=0, le=10, description="Number of bathrooms", examples=[2.5])
+    sqft_living: int = Field(..., ge=100, le=15000, description="Square footage of living space", examples=[2000])
+    sqft_lot: int = Field(..., ge=500, le=2000000, description="Square footage of the lot", examples=[5000])
+    floors: float = Field(..., ge=1, le=4, description="Number of floors", examples=[2.0])
+    sqft_above: int = Field(..., ge=0, le=15000, description="Square footage above ground", examples=[1500])
+    sqft_basement: int = Field(..., ge=0, le=5000, description="Basement square footage", examples=[500])
+    
+    # V2.1 property characteristics (4)
+    waterfront: int = Field(..., ge=0, le=1, description="Waterfront property (0=No, 1=Yes)", examples=[0])
+    view: int = Field(..., ge=0, le=4, description="Quality of view (0-4 scale)", examples=[0])
+    condition: int = Field(..., ge=1, le=5, description="Condition of the house (1-5 scale)", examples=[3])
+    grade: int = Field(..., ge=1, le=13, description="Construction grade (1-13 scale)", examples=[7])
+    
+    # V2.1 age features (2)
+    yr_built: int = Field(..., ge=1800, le=2030, description="Year built", examples=[1990])
+    yr_renovated: int = Field(..., ge=0, le=2030, description="Year renovated (0 if never)", examples=[0])
+    
+    # V2.1 spatial features (2)
+    lat: float = Field(..., ge=47.0, le=48.0, description="Latitude coordinate", examples=[47.5354])
+    long: float = Field(..., ge=-123.0, le=-121.0, description="Longitude coordinate", examples=[-122.273])
+    
+    # V2.1 neighborhood context (2)
+    sqft_living15: int = Field(..., ge=0, le=15000, description="Avg sqft of 15 nearest neighbors", examples=[1560])
+    sqft_lot15: int = Field(..., ge=0, le=2000000, description="Avg lot sqft of 15 nearest neighbors", examples=[5765])
+    
+    def get_model_features(self) -> dict:
+        """Extract all 17 home features as a dictionary."""
+        return {
+            "bedrooms": self.bedrooms,
+            "bathrooms": self.bathrooms,
+            "sqft_living": self.sqft_living,
+            "sqft_lot": self.sqft_lot,
+            "floors": self.floors,
+            "sqft_above": self.sqft_above,
+            "sqft_basement": self.sqft_basement,
+            "waterfront": self.waterfront,
+            "view": self.view,
+            "condition": self.condition,
+            "grade": self.grade,
+            "yr_built": self.yr_built,
+            "yr_renovated": self.yr_renovated,
+            "lat": self.lat,
+            "long": self.long,
+            "sqft_living15": self.sqft_living15,
+            "sqft_lot15": self.sqft_lot15,
+        }
+    
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "bedrooms": 3, "bathrooms": 2.5, "sqft_living": 2000,
+                    "sqft_lot": 5000, "floors": 2.0, "sqft_above": 1500,
+                    "sqft_basement": 500, "waterfront": 0, "view": 0,
+                    "condition": 3, "grade": 7, "yr_built": 1990,
+                    "yr_renovated": 0, "lat": 47.5354, "long": -122.273,
+                    "sqft_living15": 1560, "sqft_lot15": 5765
                 }
             ]
         }

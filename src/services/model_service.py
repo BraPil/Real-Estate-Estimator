@@ -101,7 +101,14 @@ class ModelService:
         with open(features_path, "r") as f:
             self.feature_names = json.load(f)
         
-        self.model_version = "v1"
+        # Detect model version based on feature count
+        # V1: 33 features (7 home + 26 demographic)
+        # V2.1: 43 features (17 home + 26 demographic)
+        if len(self.feature_names) >= 40:
+            self.model_version = "v2.1"
+        else:
+            self.model_version = "v1"
+        
         self.is_loaded = True
         logger.info(
             "Model loaded successfully. Version: %s, Features: %d",
