@@ -2,7 +2,7 @@
 
 **Project:** Real Estate Price Predictor  
 **Date:** 2025-12-08  
-**Status:** V2.3 Complete, V2.4 Next
+**Status:** V2.5 Complete, V2.7 Explored, V3.1 Next
 
 ---
 
@@ -13,11 +13,13 @@
 | V2.1 | Feature Expansion | ✅ **COMPLETE** | +10 features, MAE -12% |
 | V2.1.1 | Full Features Endpoint | ✅ **COMPLETE** | `/predict-full` - all 17 features, no zipcode |
 | V2.1.2 | Adaptive Routing | ⏸️ **LOW PRIORITY** | Explored but deferred - `/predict-full` is sufficient |
-| V2.2 | Feature Engineering | ⏸️ DEFERRED | Skipping for now - can revisit after V2.4 |
+| V2.2 | Feature Engineering | ⏸️ DEFERRED | Skipping for now - can revisit later |
 | V2.3 | Hyperparameter Tuning | ✅ **COMPLETE** | **MAE -5.9%**, manhattan + distance-weighted |
 | V2.4 | Model Alternatives | ✅ **COMPLETE** | XGBoost wins: MAE $67,041 (-20.7%) |
-| V2.5 | Robust Evaluation | 📋 PLANNED | K-fold CV, confidence intervals |
+| V2.5 | Robust Evaluation | ✅ **COMPLETE** | K-fold CV MAE $63,529, 95% CI |
 | V2.6 | Fresh Data (Future) | 📋 PLANNED | Updated housing data (if available) |
+| V2.7 | Price-Tiered Models | ⏸️ **EXPLORED - NO ROI** | Best: +0.17% improvement, not worth complexity |
+| **V3.1** | **MLOps & CI/CD** | 📋 **NEXT** | GitHub Actions, MLflow, automated retraining |
 
 ### Decision Log (2025-12-08)
 - **V2.1.2 Adaptive Routing:** Discovered price-tier pattern (confirmed statistically) but routing accuracy too low (52%) to beat always-use-`/predict-full`. Documented as interesting finding for future exploration.
@@ -255,5 +257,126 @@ for name, model in models.items():
 
 ---
 
-**Document Version:** 1.0  
+## V2.7: Price-Tiered Models ⏸️ **EXPLORED - INSUFFICIENT ROI**
+
+**Goal:** Improve accuracy by routing predictions to specialized models based on price tier.
+
+### Status: EXPLORED - NOT ADOPTED (2025-12-08)
+
+**Experiments Conducted:**
+
+| Approach | MAE | vs Baseline | Decision |
+|----------|-----|-------------|----------|
+| V2.7a: 2-Tier Split (50th percentile) | $69,006 | -2.9% worse | ❌ Rejected |
+| V2.7b: 3-Zone Hybrid (25/50/25) | $69,050 | -4.9% worse | ❌ Rejected |
+| V2.7c: Confidence Routing (both tiers) | $66,352 | -0.8% worse | ❌ Rejected |
+| V2.7d: Low-Only Specialist (40th @ 99%) | $65,687 | **+0.17% better** | ⚠️ Marginal |
+
+**Key Learnings:**
+
+1. **Misrouting is catastrophic** - When classifier is wrong, MAE explodes ($119k+ for misrouted)
+2. **High-price specialist hurts** - Huge variance in luxury segment, specialist loses context
+3. **Low-price specialist helps** - $26k MAE for routed samples (21% better than baseline)
+4. **Best config barely wins** - 0.17% improvement doesn't justify complexity
+
+**Decision: NOT ADOPTED FOR PRODUCTION**
+- Added complexity (multiple models, routing logic) not worth 0.17% gain
+- Single XGBoost model already handles price variation internally
+- Focus engineering effort on MLOps infrastructure instead
+
+**Files Created (for reference):**
+- `src/tiered_model_system.py` - 2-tier system
+- `src/hybrid_tiered_system.py` - 3-zone hybrid
+- `src/confidence_routing_system.py` - Confidence-based routing
+- `src/low_specialist_optimization.py` - Grid search optimization
+- `src/optimize_tier_split.py` - Percentile optimization
+- `src/explore_price_tier_predictors.py` - Feature analysis
+
+---
+
+## V3.1: MLOps & CI/CD Infrastructure 📋 **NEXT**
+
+**Goal:** Production-ready ML infrastructure with automated pipelines.
+
+### Planned Components
+
+| Component | Tool | Purpose |
+|-----------|------|---------|
+| Experiment Tracking | MLflow | Track experiments, metrics, artifacts |
+| CI/CD Pipeline | GitHub Actions | Automated testing, deployment |
+| Model Registry | MLflow | Version control for models |
+| Data Validation | Great Expectations / custom | Ensure data quality |
+| Monitoring | Custom + logs | Track prediction quality over time |
+| Retraining | Scheduled/triggered | Keep model current |
+
+### GitHub Actions Workflows
+
+1. **`ci.yml`** - On every PR:
+   - Lint (ruff/black)
+   - Unit tests
+   - Integration tests
+   - Model validation
+
+2. **`train.yml`** - On data update or manual trigger:
+   - Data validation
+   - Model training
+   - Evaluation against baseline
+   - MLflow logging
+   - Model registration (if improved)
+
+3. **`deploy.yml`** - On model approval:
+   - Build Docker image
+   - Push to registry
+   - Deploy to staging
+   - Smoke tests
+   - Deploy to production (manual gate)
+
+### MLflow Integration
+
+```
+mlflow/
+├── mlruns/           # Experiment tracking
+├── models/           # Model registry
+└── artifacts/        # Saved artifacts
+```
+
+### Data Pipeline
+
+```
+New Data → Validation → Preprocessing → Training → Evaluation → Registry
+                ↓
+          Great Expectations
+          (schema, ranges, distributions)
+```
+
+### Monitoring & Alerting
+
+- **Prediction drift**: Compare recent predictions to training distribution
+- **Data drift**: Monitor input feature distributions
+- **Performance decay**: Track MAE on holdout samples over time
+- **Alert thresholds**: Trigger retrain when metrics degrade >5%
+
+### Implementation Plan
+
+| Phase | Deliverable | Effort |
+|-------|-------------|--------|
+| 3.1.1 | MLflow setup + experiment tracking | 2-3 hours |
+| 3.1.2 | GitHub Actions CI (lint, test) | 2-3 hours |
+| 3.1.3 | Training pipeline workflow | 3-4 hours |
+| 3.1.4 | Model registry + versioning | 2-3 hours |
+| 3.1.5 | Deployment pipeline | 3-4 hours |
+| 3.1.6 | Monitoring dashboard | 3-4 hours |
+
+### Success Criteria
+
+- [ ] All experiments logged to MLflow with metrics + artifacts
+- [ ] PR requires passing CI checks before merge
+- [ ] Model retraining can be triggered via GitHub Actions
+- [ ] New models require evaluation gate before deployment
+- [ ] Production model version tracked in registry
+- [ ] Monitoring alerts on performance degradation
+
+---
+
+**Document Version:** 2.0  
 **Last Updated:** 2025-12-08

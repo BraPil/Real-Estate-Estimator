@@ -1,0 +1,198 @@
+{
+  "timestamp": "2025-12-08T13:49:25.418596",
+  "baseline_metrics": {
+    "mae": 65798.09064524058,
+    "rmse": 133528.5587608362,
+    "r2": 0.8820593744990812,
+    "mape": 12.037181445521348
+  },
+  "thresholds_tested": [
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95,
+    0.99
+  ],
+  "results_by_threshold": [
+    {
+      "threshold": 0.7,
+      "metrics": {
+        "mae": 67450.1348600509,
+        "rmse": 135001.47836321805,
+        "r2": 0.8794430776528028,
+        "mape": 12.220614532320138
+      },
+      "routing": {
+        "n_low_specialist": 775,
+        "n_baseline": 2749,
+        "n_high_specialist": 799,
+        "pct_specialist": 36.40990053203794,
+        "pct_baseline": 63.590099467962055
+      },
+      "accuracy": {
+        "overall_routing_accuracy": 0.814943326393708,
+        "n_misrouted_to_wrong_specialist": 90
+      },
+      "low_specialist_mae": 32494.23709677419,
+      "baseline_mae": 50812.11679246999,
+      "high_specialist_mae": 158599.98771902377,
+      "misrouted_specialist_mae": 153507.6355902778
+    },
+    {
+      "threshold": 0.75,
+      "metrics": {
+        "mae": 67196.69273724844,
+        "rmse": 134918.86798832362,
+        "r2": 0.8795905753769618,
+        "mape": 12.16156123764741
+      },
+      "routing": {
+        "n_low_specialist": 711,
+        "n_baseline": 2868,
+        "n_high_specialist": 744,
+        "pct_specialist": 33.657182512144345,
+        "pct_baseline": 66.34281748785565
+      },
+      "accuracy": {
+        "overall_routing_accuracy": 0.7985195466111497,
+        "n_misrouted_to_wrong_specialist": 66
+      },
+      "low_specialist_mae": 31808.861440752462,
+      "baseline_mae": 50988.135776237796,
+      "high_specialist_mae": 163496.2752856183,
+      "misrouted_specialist_mae": 164775.41714015152
+    },
+    {
+      "threshold": 0.8,
+      "metrics": {
+        "mae": 66975.046875,
+        "rmse": 134605.09370427634,
+        "r2": 0.8801499848709982,
+        "mape": 12.13314329338717
+      },
+      "routing": {
+        "n_low_specialist": 651,
+        "n_baseline": 2980,
+        "n_high_specialist": 692,
+        "pct_specialist": 31.066389081656258,
+        "pct_baseline": 68.93361091834375
+      },
+      "accuracy": {
+        "overall_routing_accuracy": 0.7823270876705991,
+        "n_misrouted_to_wrong_specialist": 45
+      },
+      "low_specialist_mae": 30625.947268625194,
+      "baseline_mae": 51561.62742239933,
+      "high_specialist_mae": 167546.22290462427,
+      "misrouted_specialist_mae": 172598.3295138889
+    },
+    {
+      "threshold": 0.85,
+      "metrics": {
+        "mae": 66960.5652180199,
+        "rmse": 134760.77115661182,
+        "r2": 0.8798725996113133,
+        "mape": 12.12715815025167
+      },
+      "routing": {
+        "n_low_specialist": 579,
+        "n_baseline": 3110,
+        "n_high_specialist": 634,
+        "pct_specialist": 28.059218135554016,
+        "pct_baseline": 71.940781864446
+      },
+      "accuracy": {
+        "overall_routing_accuracy": 0.7559565116817025,
+        "n_misrouted_to_wrong_specialist": 37
+      },
+      "low_specialist_mae": 30699.620817141622,
+      "baseline_mae": 51886.78222970257,
+      "high_specialist_mae": 174018.21805993692,
+      "misrouted_specialist_mae": 171774.65244932432
+    },
+    {
+      "threshold": 0.9,
+      "metrics": {
+        "mae": 66466.56671437659,
+        "rmse": 134179.03878121404,
+        "r2": 0.8809074878036715,
+        "mape": 12.064205850596247
+      },
+      "routing": {
+        "n_low_specialist": 483,
+        "n_baseline": 3274,
+        "n_high_specialist": 566,
+        "pct_specialist": 24.265556326625028,
+        "pct_baseline": 75.73444367337497
+      },
+      "accuracy": {
+        "overall_routing_accuracy": 0.7258848022206801,
+        "n_misrouted_to_wrong_specialist": 20
+      },
+      "low_specialist_mae": 29730.96425336439,
+      "baseline_mae": 52344.068890310016,
+      "high_specialist_mae": 179506.06117491165,
+      "misrouted_specialist_mae": 178565.44609375
+    },
+    {
+      "threshold": 0.95,
+      "metrics": {
+        "mae": 66352.14622007287,
+        "rmse": 133932.76569183057,
+        "r2": 0.8813442529733992,
+        "mape": 12.05150064980712
+      },
+      "routing": {
+        "n_low_specialist": 362,
+        "n_baseline": 3471,
+        "n_high_specialist": 490,
+        "pct_specialist": 19.70853573907009,
+        "pct_baseline": 80.29146426092991
+      },
+      "accuracy": {
+        "overall_routing_accuracy": 0.6854036548693038,
+        "n_misrouted_to_wrong_specialist": 9
+      },
+      "low_specialist_mae": 28401.720433356353,
+      "baseline_mae": 53782.09660400461,
+      "high_specialist_mae": 183431.11836734693,
+      "misrouted_specialist_mae": 240252.50173611112
+    },
+    {
+      "threshold": 0.99,
+      "metrics": {
+        "mae": 66434.54234978603,
+        "rmse": 134273.39040494728,
+        "r2": 0.8807399426691681,
+        "mape": 12.046198394348027
+      },
+      "routing": {
+        "n_low_specialist": 190,
+        "n_baseline": 3762,
+        "n_high_specialist": 371,
+        "pct_specialist": 12.977099236641221,
+        "pct_baseline": 87.02290076335878
+      },
+      "accuracy": {
+        "overall_routing_accuracy": 0.6213277816331252,
+        "n_misrouted_to_wrong_specialist": 2
+      },
+      "low_specialist_mae": 25009.61447368421,
+      "baseline_mae": 55309.52296401515,
+      "high_specialist_mae": 200458.96074797845,
+      "misrouted_specialist_mae": 131966.140625
+    }
+  ],
+  "best_threshold": 0.95,
+  "best_improvement_pct": -0.842054183334227,
+  "zone_config": {
+    "low_percentile": 25,
+    "high_percentile": 75,
+    "thresholds": {
+      "low": 321950.0,
+      "high": 645000.0
+    }
+  }
+}

@@ -1,0 +1,675 @@
+{
+  "timestamp": "2025-12-08T12:39:06.771291",
+  "n_tiers": 2,
+  "tier_info": {
+    "n_tiers": 2,
+    "bins": [
+      0,
+      450000.0,
+      Infinity
+    ],
+    "labels": [
+      "tier_1",
+      "tier_2"
+    ],
+    "distribution": {
+      "tier_1": 10864,
+      "tier_2": 10749
+    }
+  },
+  "analyses": {
+    "correlations": [
+      {
+        "feature": "hous_val_amt",
+        "pearson_r": 0.5797332242653636,
+        "pearson_p": 0.0,
+        "spearman_r": 0.6772475147601876,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.5797332242653636,
+        "abs_spearman": 0.6772475147601876
+      },
+      {
+        "feature": "grade",
+        "pearson_r": 0.667434256020237,
+        "pearson_p": 0.0,
+        "spearman_r": 0.6582152214259374,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.667434256020237,
+        "abs_spearman": 0.6582152214259374
+      },
+      {
+        "feature": "per_bchlr",
+        "pearson_r": 0.4748961509914973,
+        "pearson_p": 0.0,
+        "spearman_r": 0.650112819578527,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.4748961509914973,
+        "abs_spearman": 0.650112819578527
+      },
+      {
+        "feature": "per_prfsnl",
+        "pearson_r": 0.5002619114795338,
+        "pearson_p": 0.0,
+        "spearman_r": 0.6487106869725466,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.5002619114795338,
+        "abs_spearman": 0.6487106869725466
+      },
+      {
+        "feature": "sqft_living",
+        "pearson_r": 0.7020350546118,
+        "pearson_p": 0.0,
+        "spearman_r": 0.6441909821578404,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.7020350546118,
+        "abs_spearman": 0.6441909821578404
+      },
+      {
+        "feature": "per_hsd",
+        "pearson_r": -0.49437127688340426,
+        "pearson_p": 0.0,
+        "spearman_r": -0.642267713179887,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.49437127688340426,
+        "abs_spearman": 0.642267713179887
+      },
+      {
+        "feature": "medn_incm_per_prsn_amt",
+        "pearson_r": 0.5499111230172282,
+        "pearson_p": 0.0,
+        "spearman_r": 0.6244086009906825,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.5499111230172282,
+        "abs_spearman": 0.6244086009906825
+      },
+      {
+        "feature": "sqft_living15",
+        "pearson_r": 0.585378903579568,
+        "pearson_p": 0.0,
+        "spearman_r": 0.5722897679433038,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.585378903579568,
+        "abs_spearman": 0.5722897679433038
+      },
+      {
+        "feature": "per_9_to_12",
+        "pearson_r": -0.41219957869866974,
+        "pearson_p": 0.0,
+        "spearman_r": -0.5585013524846416,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.41219957869866974,
+        "abs_spearman": 0.5585013524846416
+      },
+      {
+        "feature": "sqft_above",
+        "pearson_r": 0.605567298356078,
+        "pearson_p": 0.0,
+        "spearman_r": 0.5417515924329482,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.605567298356078,
+        "abs_spearman": 0.5417515924329482
+      },
+      {
+        "feature": "edctn_high_schl_qty",
+        "pearson_r": -0.3859723979332911,
+        "pearson_p": 0.0,
+        "spearman_r": -0.5122958728812141,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.3859723979332911,
+        "abs_spearman": 0.5122958728812141
+      },
+      {
+        "feature": "edctn_9_12_qty",
+        "pearson_r": -0.37061910827745687,
+        "pearson_p": 0.0,
+        "spearman_r": -0.5083647566303351,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.37061910827745687,
+        "abs_spearman": 0.5083647566303351
+      },
+      {
+        "feature": "edctn_prfsnl_qty",
+        "pearson_r": 0.29169400522014105,
+        "pearson_p": 0.0,
+        "spearman_r": 0.4971820513242461,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.29169400522014105,
+        "abs_spearman": 0.4971820513242461
+      },
+      {
+        "feature": "bathrooms",
+        "pearson_r": 0.5251375054139619,
+        "pearson_p": 0.0,
+        "spearman_r": 0.49716035081092047,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.5251375054139619,
+        "abs_spearman": 0.49716035081092047
+      },
+      {
+        "feature": "per_less_than_9",
+        "pearson_r": -0.254451235665656,
+        "pearson_p": 1.62581787e-316,
+        "spearman_r": -0.47359890880861333,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.254451235665656,
+        "abs_spearman": 0.47359890880861333
+      },
+      {
+        "feature": "lat",
+        "pearson_r": 0.30700347999521854,
+        "pearson_p": 0.0,
+        "spearman_r": 0.4564094660498532,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.30700347999521854,
+        "abs_spearman": 0.4564094660498532
+      },
+      {
+        "feature": "edctn_less_than_9_qty",
+        "pearson_r": -0.24557970762208872,
+        "pearson_p": 2.7056801561326617e-294,
+        "spearman_r": -0.4461979853126335,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.24557970762208872,
+        "abs_spearman": 0.4461979853126335
+      },
+      {
+        "feature": "edctn_bchlr_dgre_qty",
+        "pearson_r": 0.2092376061718105,
+        "pearson_p": 2.1341861388980232e-212,
+        "spearman_r": 0.38639074820212416,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.2092376061718105,
+        "abs_spearman": 0.38639074820212416
+      },
+      {
+        "feature": "bedrooms",
+        "pearson_r": 0.3083495981456383,
+        "pearson_p": 0.0,
+        "spearman_r": 0.34465237095978885,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.3083495981456383,
+        "abs_spearman": 0.34465237095978885
+      },
+      {
+        "feature": "floors",
+        "pearson_r": 0.2567938875507184,
+        "pearson_p": 1.6e-322,
+        "spearman_r": 0.32234655003563695,
+        "spearman_p": 0.0,
+        "abs_pearson": 0.2567938875507184,
+        "abs_spearman": 0.32234655003563695
+      }
+    ],
+    "classification_importance": [
+      {
+        "feature": "sqft_living",
+        "importance": 0.12005569066128133
+      },
+      {
+        "feature": "per_bchlr",
+        "importance": 0.08907853895034577
+      },
+      {
+        "feature": "lat",
+        "importance": 0.08326802348643265
+      },
+      {
+        "feature": "hous_val_amt",
+        "importance": 0.07652765430880276
+      },
+      {
+        "feature": "grade",
+        "importance": 0.07290467808121812
+      },
+      {
+        "feature": "sqft_living15",
+        "importance": 0.06004609412725493
+      },
+      {
+        "feature": "per_prfsnl",
+        "importance": 0.05963723441191697
+      },
+      {
+        "feature": "medn_incm_per_prsn_amt",
+        "importance": 0.05835059532723436
+      },
+      {
+        "feature": "sqft_above",
+        "importance": 0.05348456703362473
+      },
+      {
+        "feature": "per_hsd",
+        "importance": 0.0327501112531695
+      },
+      {
+        "feature": "edctn_high_schl_qty",
+        "importance": 0.02432408771261278
+      },
+      {
+        "feature": "bathrooms",
+        "importance": 0.022348276043532404
+      },
+      {
+        "feature": "edctn_9_12_qty",
+        "importance": 0.02120595808602039
+      },
+      {
+        "feature": "long",
+        "importance": 0.01954336991659431
+      },
+      {
+        "feature": "sqft_lot",
+        "importance": 0.018175762220150493
+      }
+    ],
+    "polynomial": {
+      "hous_val_amt": {
+        "base": 0.6772475147601876,
+        "squared": 0.6772475147601876,
+        "log": 0.6772475147601876,
+        "sqrt": 0.6772475147601876
+      },
+      "grade": {
+        "base": 0.6582152214259374,
+        "squared": 0.6582152214259374,
+        "log": 0.6582152214259374,
+        "sqrt": 0.6582152214259374
+      },
+      "per_bchlr": {
+        "base": 0.650112819578527,
+        "squared": 0.650112819578527,
+        "log": 0.650112819578527,
+        "sqrt": 0.650112819578527
+      },
+      "per_prfsnl": {
+        "base": 0.6487106869725466,
+        "squared": 0.6487106869725466,
+        "log": 0.6487106869725466,
+        "sqrt": 0.6487106869725466
+      },
+      "sqft_living": {
+        "base": 0.6441909821578404,
+        "squared": 0.6441909821578404,
+        "log": 0.6441909821578404,
+        "sqrt": 0.6441909821578404
+      },
+      "per_hsd": {
+        "base": -0.642267713179887,
+        "squared": -0.642267713179887,
+        "log": -0.642267713179887,
+        "sqrt": -0.642267713179887
+      },
+      "medn_incm_per_prsn_amt": {
+        "base": 0.6244086009906825,
+        "squared": 0.6244086009906825,
+        "log": 0.6244086009906825,
+        "sqrt": 0.6244086009906825
+      },
+      "sqft_living15": {
+        "base": 0.5722897679433038,
+        "squared": 0.5722897679433038,
+        "log": 0.5722897679433038,
+        "sqrt": 0.5722897679433038
+      },
+      "per_9_to_12": {
+        "base": -0.5585013524846416,
+        "squared": -0.5585013524846416,
+        "log": -0.5585013524846416,
+        "sqrt": -0.5585013524846416
+      },
+      "sqft_above": {
+        "base": 0.5417515924329482,
+        "squared": 0.5417515924329482,
+        "log": 0.5417515924329482,
+        "sqrt": 0.5417515924329482
+      }
+    },
+    "interactions": [
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "grade",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": 0.807211034166967,
+        "ratio_r": 0.3356171915771629,
+        "multiply_improvement": 19.189958851720455,
+        "ratio_improvement": -50.44393899385449
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "per_bchlr",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": 0.6774851223575337,
+        "ratio_r": -0.3137611452252492,
+        "multiply_improvement": 0.03508430701737917,
+        "ratio_improvement": -53.67112637742915
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "per_prfsnl",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": 0.6735878989248807,
+        "ratio_r": -0.5271379621444796,
+        "multiply_improvement": -0.5403660782133404,
+        "ratio_improvement": -22.16465167374761
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "sqft_living",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": 0.8293920078065663,
+        "ratio_r": -0.18333062023848312,
+        "multiply_improvement": 22.465123862470403,
+        "ratio_improvement": -72.93004164018228
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "per_hsd",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": -0.04101626448263584,
+        "ratio_r": 0.676627332853401,
+        "multiply_improvement": -93.94368180189488,
+        "ratio_improvement": -0.0915738918593438
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "medn_incm_per_prsn_amt",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": 0.6602423678654411,
+        "ratio_r": 0.32120218708892356,
+        "multiply_improvement": -2.5109205311396416,
+        "ratio_improvement": -52.572408153810535
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "sqft_living15",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": 0.7792663726769812,
+        "ratio_r": 0.00356795104414366,
+        "multiply_improvement": 15.063747846002547,
+        "ratio_improvement": -99.47316882433935
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "per_9_to_12",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": -0.36306590859483157,
+        "ratio_r": 0.6175077448544395,
+        "multiply_improvement": -46.39095741482453,
+        "ratio_improvement": -8.820965541217513
+      },
+      {
+        "feature1": "hous_val_amt",
+        "feature2": "sqft_above",
+        "individual_best": 0.6772475147601876,
+        "multiply_r": 0.7625488329972709,
+        "ratio_r": -0.09334717708681865,
+        "multiply_improvement": 12.595294390602287,
+        "ratio_improvement": -86.2166822243899
+      },
+      {
+        "feature1": "grade",
+        "feature2": "per_bchlr",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": 0.7820289526206544,
+        "ratio_r": -0.41667216412688757,
+        "multiply_improvement": 18.810523847578423,
+        "ratio_improvement": -36.69666842036535
+      },
+      {
+        "feature1": "grade",
+        "feature2": "per_prfsnl",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": 0.7464133344793222,
+        "ratio_r": -0.5047694436569129,
+        "multiply_improvement": 13.399585755904456,
+        "ratio_improvement": -23.31240189745297
+      },
+      {
+        "feature1": "grade",
+        "feature2": "sqft_living",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": 0.6805419278400296,
+        "ratio_r": -0.5380085479591198,
+        "multiply_improvement": 3.392007004293276,
+        "ratio_improvement": -18.262518026612256
+      },
+      {
+        "feature1": "grade",
+        "feature2": "per_hsd",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": -0.33402575748212937,
+        "ratio_r": 0.7740161528148525,
+        "multiply_improvement": -49.25280567676539,
+        "ratio_improvement": 17.5931712940408
+      },
+      {
+        "feature1": "grade",
+        "feature2": "medn_incm_per_prsn_amt",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": 0.7692955572553554,
+        "ratio_r": -0.23705642206613342,
+        "multiply_improvement": 16.875990134165686,
+        "ratio_improvement": -63.984968084970504
+      },
+      {
+        "feature1": "grade",
+        "feature2": "sqft_living15",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": 0.6421923141852287,
+        "ratio_r": -0.38232594724951313,
+        "multiply_improvement": -2.4342960659580486,
+        "ratio_improvement": -41.91475146666255
+      },
+      {
+        "feature1": "grade",
+        "feature2": "per_9_to_12",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": -0.39106121532494725,
+        "ratio_r": 0.6675087224475629,
+        "multiply_improvement": -40.58763720508253,
+        "ratio_improvement": 1.4119243553031726
+      },
+      {
+        "feature1": "grade",
+        "feature2": "sqft_above",
+        "individual_best": 0.6582152214259374,
+        "multiply_r": 0.5993920156095766,
+        "ratio_r": -0.41279772733915177,
+        "multiply_improvement": -8.936773854747388,
+        "ratio_improvement": -37.28529607004843
+      },
+      {
+        "feature1": "per_bchlr",
+        "feature2": "per_prfsnl",
+        "individual_best": 0.650112819578527,
+        "multiply_r": 0.6585775519390213,
+        "ratio_r": -0.4842228034269577,
+        "multiply_improvement": 1.3020405236712818,
+        "ratio_improvement": -25.517111977443697
+      },
+      {
+        "feature1": "per_bchlr",
+        "feature2": "sqft_living",
+        "individual_best": 0.650112819578527,
+        "multiply_r": 0.8605365049970095,
+        "ratio_r": -0.019820786306535942,
+        "multiply_improvement": 32.3672567408995,
+        "ratio_improvement": -96.95117744034245
+      },
+      {
+        "feature1": "per_bchlr",
+        "feature2": "per_hsd",
+        "individual_best": 0.650112819578527,
+        "multiply_r": 0.23079551019502254,
+        "ratio_r": 0.6584295180213876,
+        "multiply_improvement": -64.49916026196053,
+        "ratio_improvement": 1.279270027047371
+      }
+    ],
+    "classifiers": {
+      "Logistic Regression": {
+        "test_accuracy": 0.8843395789960675,
+        "cv_accuracy_mean": 0.8847310584152689,
+        "cv_accuracy_std": 0.004220905099021178
+      },
+      "Decision Tree": {
+        "test_accuracy": 0.8845708998380755,
+        "cv_accuracy_mean": 0.8852515905147484,
+        "cv_accuracy_std": 0.0028416699818480393
+      },
+      "Random Forest": {
+        "test_accuracy": 0.9079343048808698,
+        "cv_accuracy_mean": 0.9098901098901099,
+        "cv_accuracy_std": 0.004467315562134746
+      },
+      "Gradient Boosting": {
+        "test_accuracy": 0.9125607217210271,
+        "cv_accuracy_mean": 0.9122035858877965,
+        "cv_accuracy_std": 0.0012214408375906924
+      }
+    },
+    "simple_rules": {
+      "threshold_rules": [
+        {
+          "feature": "grade",
+          "threshold": 8.0,
+          "percentile": 75,
+          "accuracy": 0.7382131124786009
+        },
+        {
+          "feature": "sqft_living",
+          "threshold": 1910.0,
+          "percentile": 50,
+          "accuracy": 0.7186415583213807
+        },
+        {
+          "feature": "lat",
+          "threshold": 47.5718,
+          "percentile": 50,
+          "accuracy": 0.7147550085596631
+        },
+        {
+          "feature": "lat",
+          "threshold": 47.471,
+          "percentile": 25,
+          "accuracy": 0.6902327303012076
+        },
+        {
+          "feature": "sqft_living15",
+          "threshold": 1840.0,
+          "percentile": 50,
+          "accuracy": 0.6890297506130569
+        },
+        {
+          "feature": "sqft_living",
+          "threshold": 2550.0,
+          "percentile": 75,
+          "accuracy": 0.6831536575209365
+        },
+        {
+          "feature": "sqft_above",
+          "threshold": 1560.0,
+          "percentile": 50,
+          "accuracy": 0.673668625364364
+        },
+        {
+          "feature": "sqft_living15",
+          "threshold": 2360.0,
+          "percentile": 75,
+          "accuracy": 0.6668208948318142
+        },
+        {
+          "feature": "bathrooms",
+          "threshold": 2.25,
+          "percentile": 50,
+          "accuracy": 0.6618239022810346
+        },
+        {
+          "feature": "sqft_living",
+          "threshold": 1427.0,
+          "percentile": 25,
+          "accuracy": 0.660991070189238
+        },
+        {
+          "feature": "bathrooms",
+          "threshold": 2.5,
+          "percentile": 75,
+          "accuracy": 0.6527090177208161
+        },
+        {
+          "feature": "sqft_above",
+          "threshold": 2210.0,
+          "percentile": 75,
+          "accuracy": 0.6517836487299311
+        },
+        {
+          "feature": "sqft_living15",
+          "threshold": 1490.0,
+          "percentile": 25,
+          "accuracy": 0.6400777309952344
+        },
+        {
+          "feature": "bathrooms",
+          "threshold": 1.75,
+          "percentile": 25,
+          "accuracy": 0.6345255170499237
+        },
+        {
+          "feature": "sqft_above",
+          "threshold": 1190.0,
+          "percentile": 25,
+          "accuracy": 0.623559894507935
+        },
+        {
+          "feature": "grade",
+          "threshold": 7.0,
+          "percentile": 50,
+          "accuracy": 0.5902003423865266
+        },
+        {
+          "feature": "grade",
+          "threshold": 7.0,
+          "percentile": 25,
+          "accuracy": 0.5902003423865266
+        },
+        {
+          "feature": "lat",
+          "threshold": 47.678,
+          "percentile": 75,
+          "accuracy": 0.5285707675935779
+        }
+      ],
+      "combined_rules": [
+        {
+          "rule": "grade >= 7 AND lat >= 47.57",
+          "accuracy": 0.7310415027992412
+        },
+        {
+          "rule": "sqft_living >= 1910 AND grade >= 7.00",
+          "accuracy": 0.7215102021931246
+        },
+        {
+          "rule": "sqft_living >= 1910 AND lat >= 47.57",
+          "accuracy": 0.7141997871651321
+        },
+        {
+          "rule": "sqft_living >= 1910 AND bathrooms >= 2.25",
+          "accuracy": 0.6964327025401379
+        },
+        {
+          "rule": "bathrooms >= 2 AND lat >= 47.57",
+          "accuracy": 0.689399898209411
+        },
+        {
+          "rule": "grade >= 7 AND bathrooms >= 2.25",
+          "accuracy": 0.662980613519641
+        }
+      ]
+    },
+    "engineered_features": {
+      "original_accuracy": 0.9091756125533251,
+      "engineered_accuracy": 0.9097768112470099,
+      "improvement_pct": 0.06612569512246344
+    }
+  }
+}

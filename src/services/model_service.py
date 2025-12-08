@@ -118,12 +118,12 @@ class ModelService:
                 self.model_version = "v2.1" if len(self.feature_names) >= 40 else "v1"
         else:
             # Fallback: detect version based on feature count
-            # V1: 33 features (7 home + 26 demographic)
+        # V1: 33 features (7 home + 26 demographic)
             # V2.1+: 43 features (17 home + 26 demographic)
-            if len(self.feature_names) >= 40:
-                self.model_version = "v2.1"
-            else:
-                self.model_version = "v1"
+        if len(self.feature_names) >= 40:
+            self.model_version = "v2.1"
+        else:
+            self.model_version = "v1"
         
         self.is_loaded = True
         logger.info(
