@@ -36,7 +36,7 @@ from mlflow_config import setup_mlflow, MLFLOW_MODEL_NAME
 DATA_DIR = Path("data")
 MODEL_DIR = Path("model")
 DEMOGRAPHICS_PATH = DATA_DIR / "zipcode_demographics.csv"
-FRESH_DATA_PATH = DATA_DIR / "assessment_2020_plus_v3.csv"  # V3 with real lat/long from GIS
+FRESH_DATA_PATH = DATA_DIR / "assessment_2020_plus_v4.csv"  # V4 with distressed/outlier filtering
 
 # V2.5 tuned hyperparameters (use as starting point)
 DEFAULT_PARAMS = {
@@ -67,13 +67,19 @@ def load_fresh_data():
     demographics["zipcode"] = demographics["zipcode"].astype(str).str.strip()
     df = df.merge(demographics, on="zipcode", how="left")
     
-    # Define feature columns (same as V2.5)
+    # Define feature columns (same as V2.5 + V3.3 temporal features)
     feature_cols = [
         "bedrooms", "bathrooms", "sqft_living", "sqft_lot", "floors",
         "waterfront", "view", "condition", "grade", "sqft_above",
         "sqft_basement", "yr_built", "yr_renovated",
         "lat", "long", "sqft_living15", "sqft_lot15",
     ]
+    
+    # V3.3: Add temporal features if available
+    temporal_cols = ["sale_year", "sale_month", "sale_quarter", "sale_dow"]
+    for col in temporal_cols:
+        if col in df.columns:
+            feature_cols.append(col)
     
     # Add demographic columns
     demo_cols = [col for col in demographics.columns if col != "zipcode"]

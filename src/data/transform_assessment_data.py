@@ -241,6 +241,15 @@ def transform_to_model_format(df: pd.DataFrame) -> pd.DataFrame:
     result["sqft_lot15"] = result["zip_sqft_lot_avg"].fillna(result["sqft_lot"])
     result = result.drop(columns=["zip_sqft_living_avg", "zip_sqft_lot_avg"])
 
+    # V3.3: Temporal features from sale date
+    print("  Adding temporal features...")
+    sale_date = pd.to_datetime(df["DocumentDate"])
+    result["sale_year"] = sale_date.dt.year.fillna(2020).astype(int)
+    result["sale_month"] = sale_date.dt.month.fillna(1).astype(int)
+    result["sale_quarter"] = sale_date.dt.quarter.fillna(1).astype(int)
+    # Day of week (0=Monday, 6=Sunday) - sales on certain days may differ
+    result["sale_dow"] = sale_date.dt.dayofweek.fillna(0).astype(int)
+
     # Add metadata
     result["id"] = df["Major"].astype(str) + df["Minor"].astype(str)
     result["date"] = pd.to_datetime(df["DocumentDate"]).dt.strftime("%Y%m%dT000000")
@@ -251,9 +260,18 @@ def transform_to_model_format(df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-def validate_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
+def validate_data(
+    df: pd.DataFrame,
+    filter_distressed: bool = True,
+    cap_price: Optional[int] = 3000000,
+) -> Tuple[pd.DataFrame, dict]:
     """
     Validate and clean transformed data.
+
+    Args:
+        df: Transformed DataFrame
+        filter_distressed: If True, remove sales below P5 per zipcode (likely distressed)
+        cap_price: If set, exclude sales above this price
 
     Returns cleaned DataFrame and validation report.
     """
@@ -280,6 +298,33 @@ def validate_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
     df = df[df["bathrooms"] <= 15]
     df = df[df["sqft_living"] <= 20000]
     df = df[df["sqft_lot"] <= 1000000]
+
+    # V3.3: Filter distressed sales (below P5 per zipcode)
+    if filter_distressed:
+        before = len(df)
+        # Calculate P5 threshold per zipcode
+        zipcode_p5 = df.groupby("zipcode")["price"].quantile(0.05)
+        df = df.merge(
+            zipcode_p5.rename("zip_p5"),
+            on="zipcode",
+            how="left"
+        )
+        # Also set a global floor (P1 overall) for zipcodes with few sales
+        global_p1 = df["price"].quantile(0.01)
+        df["threshold"] = df["zip_p5"].fillna(global_p1).clip(lower=global_p1)
+        df = df[df["price"] >= df["threshold"]]
+        df = df.drop(columns=["zip_p5", "threshold"])
+        removed_distressed = before - len(df)
+        report["removed_distressed"] = removed_distressed
+        print(f"  Filtered distressed sales: {removed_distressed:,}")
+
+    # V3.3: Cap high-end outliers
+    if cap_price:
+        before = len(df)
+        df = df[df["price"] <= cap_price]
+        removed_highend = before - len(df)
+        report["removed_highend"] = removed_highend
+        print(f"  Filtered high-end (>{cap_price:,}): {removed_highend:,}")
 
     report["final_count"] = len(df)
     report["removed"] = initial_count - len(df)
