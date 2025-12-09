@@ -24,7 +24,7 @@ Bug Fix Applied:
     (Original bug in Reference_Docs/mle-project-challenge-2/create_model.py line 14)
 
 V2.1 Feature Expansion:
-    Added features: lat, long, waterfront, view, condition, grade, 
+    Added features: lat, long, waterfront, view, condition, grade,
     yr_built, yr_renovated, sqft_living15, sqft_lot15
 """
 
@@ -34,7 +34,6 @@ import pathlib
 import pickle
 import sys
 from datetime import datetime
-from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -43,8 +42,10 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # Try to import MLflow; gracefully degrade if not available
 try:
-    import mlflow
     import mlflow.sklearn
+
+    import mlflow
+
     MLFLOW_AVAILABLE = True
 except ImportError:
     MLFLOW_AVAILABLE = False
@@ -76,32 +77,31 @@ DEMOGRAPHICS_PATH = "data/zipcode_demographics.csv"  # FIXED: was incorrectly kc
 
 SALES_COLUMN_SELECTION = [
     # Target variable
-    'price',
-    
+    "price",
     # V1 features (structural)
-    'bedrooms', 'bathrooms', 'sqft_living', 'sqft_lot', 'floors',
-    'sqft_above', 'sqft_basement',
-    
+    "bedrooms",
+    "bathrooms",
+    "sqft_living",
+    "sqft_lot",
+    "floors",
+    "sqft_above",
+    "sqft_basement",
     # V2.1 NEW: Property characteristics (high predictive value)
-    'waterfront',   # Binary: 0/1 - waterfront premium
-    'view',         # Ordinal: 0-4 - view quality
-    'condition',    # Ordinal: 1-5 - maintenance state
-    'grade',        # Ordinal: 1-13 - construction quality
-    
+    "waterfront",  # Binary: 0/1 - waterfront premium
+    "view",  # Ordinal: 0-4 - view quality
+    "condition",  # Ordinal: 1-5 - maintenance state
+    "grade",  # Ordinal: 1-13 - construction quality
     # V2.1 NEW: Age features
-    'yr_built',     # Year house was built
-    'yr_renovated', # Year of last renovation (0 if never)
-    
+    "yr_built",  # Year house was built
+    "yr_renovated",  # Year of last renovation (0 if never)
     # V2.1 NEW: Spatial features
-    'lat',          # Latitude
-    'long',         # Longitude
-    
+    "lat",  # Latitude
+    "long",  # Longitude
     # V2.1 NEW: Neighborhood context
-    'sqft_living15', # Avg living sqft of 15 nearest neighbors
-    'sqft_lot15',    # Avg lot sqft of 15 nearest neighbors
-    
+    "sqft_living15",  # Avg living sqft of 15 nearest neighbors
+    "sqft_lot15",  # Avg lot sqft of 15 nearest neighbors
     # Join key (dropped after merge)
-    'zipcode'
+    "zipcode",
 ]
 
 OUTPUT_DIR = "model"  # Directory for output artifacts
@@ -114,11 +114,10 @@ MODEL_REGISTRY_NAME = "real-estate-price-predictor"
 # DATA LOADING
 # ==============================================================================
 
+
 def load_data(
-    sales_path: str,
-    demographics_path: str,
-    sales_column_selection: List[str]
-) -> Tuple[pd.DataFrame, pd.Series]:
+    sales_path: str, demographics_path: str, sales_column_selection: list[str]
+) -> tuple[pd.DataFrame, pd.Series]:
     """Load and merge sales data with demographics.
 
     Args:
@@ -130,31 +129,25 @@ def load_data(
         Tuple of (features DataFrame, target Series)
     """
     # Load sales data with selected columns
-    sales = pd.read_csv(
-        sales_path,
-        usecols=sales_column_selection,
-        dtype={'zipcode': str}
-    )
-    
+    sales = pd.read_csv(sales_path, usecols=sales_column_selection, dtype={"zipcode": str})
+
     # Load demographics data
-    demographics = pd.read_csv(
-        demographics_path,
-        dtype={'zipcode': str}
-    )
-    
+    demographics = pd.read_csv(demographics_path, dtype={"zipcode": str})
+
     # Merge on zipcode and drop the join key
     merged = sales.merge(demographics, how="left", on="zipcode").drop(columns="zipcode")
-    
+
     # Separate target from features
-    y = merged.pop('price')
+    y = merged.pop("price")
     X = merged
-    
+
     return X, y
 
 
 # ==============================================================================
 # MODEL TRAINING
 # ==============================================================================
+
 
 def create_model(k_neighbors: int = 5) -> pipeline.Pipeline:
     """Create the ML pipeline with scaling and KNN regressor.
@@ -166,16 +159,12 @@ def create_model(k_neighbors: int = 5) -> pipeline.Pipeline:
         Unfitted sklearn Pipeline
     """
     return pipeline.make_pipeline(
-        preprocessing.RobustScaler(),
-        neighbors.KNeighborsRegressor(n_neighbors=k_neighbors)
+        preprocessing.RobustScaler(), neighbors.KNeighborsRegressor(n_neighbors=k_neighbors)
     )
 
 
 def evaluate_model(
-    model: pipeline.Pipeline,
-    X: pd.DataFrame,
-    y: pd.Series,
-    prefix: str = ""
+    model: pipeline.Pipeline, X: pd.DataFrame, y: pd.Series, prefix: str = ""
 ) -> dict:
     """Calculate comprehensive evaluation metrics.
 
@@ -189,11 +178,11 @@ def evaluate_model(
         Dictionary of metrics
     """
     predictions = model.predict(X)
-    
+
     r2 = r2_score(y, predictions)
     mae = mean_absolute_error(y, predictions)
     rmse = np.sqrt(mean_squared_error(y, predictions))
-    
+
     return {
         f"{prefix}r2": round(r2, 4),
         f"{prefix}mae": round(mae, 2),
@@ -205,8 +194,8 @@ def train_model(
     k_neighbors: int = 5,
     test_size: float = 0.25,
     experiment_name: str = "real-estate-v2",
-    run_name: str = None
-) -> Tuple[pipeline.Pipeline, dict]:
+    run_name: str = None,
+) -> tuple[pipeline.Pipeline, dict]:
     """Train the model with MLflow tracking.
 
     Args:
@@ -221,25 +210,25 @@ def train_model(
     # Generate run name if not provided
     if run_name is None:
         run_name = f"knn-k{k_neighbors}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-    
+
     # Load data
     print(f"Loading data from {SALES_PATH} and {DEMOGRAPHICS_PATH}...")
     X, y = load_data(SALES_PATH, DEMOGRAPHICS_PATH, SALES_COLUMN_SELECTION)
     print(f"Loaded {len(X)} samples with {len(X.columns)} features")
-    
+
     # Train/test split
     X_train, X_test, y_train, y_test = model_selection.train_test_split(
         X, y, test_size=test_size, random_state=RANDOM_STATE
     )
     print(f"Train set: {len(X_train)} samples, Test set: {len(X_test)} samples")
-    
+
     # Prepare output directory
     output_dir = pathlib.Path(OUTPUT_DIR)
     output_dir.mkdir(exist_ok=True)
-    
+
     # MLflow tracking context (or no-op if unavailable)
     mlflow_context = _get_mlflow_context(experiment_name, run_name)
-    
+
     with mlflow_context:
         # Log parameters
         params = {
@@ -254,19 +243,19 @@ def train_model(
         }
         _log_params(params)
         print(f"Training with parameters: k={k_neighbors}, test_size={test_size}")
-        
+
         # Create and train model
         model = create_model(k_neighbors)
         model.fit(X_train, y_train)
         print("Model training complete.")
-        
+
         # Evaluate on train and test sets
         train_metrics = evaluate_model(model, X_train, y_train, prefix="train_")
         test_metrics = evaluate_model(model, X_test, y_test, prefix="test_")
-        
+
         # Calculate overfitting gap
         overfitting_gap = round(train_metrics["train_r2"] - test_metrics["test_r2"], 4)
-        
+
         # Combine all metrics
         all_metrics = {
             **train_metrics,
@@ -274,7 +263,7 @@ def train_model(
             "overfitting_gap": overfitting_gap,
         }
         _log_metrics(all_metrics)
-        
+
         # Print metrics
         print("\n" + "=" * 60)
         print("MODEL EVALUATION RESULTS")
@@ -288,23 +277,23 @@ def train_model(
         print(f"Train RMSE: ${train_metrics['train_rmse']:,.2f}")
         print(f"Test RMSE:  ${test_metrics['test_rmse']:,.2f}")
         print("=" * 60 + "\n")
-        
+
         # Save artifacts locally
         model_path = output_dir / "model.pkl"
         features_path = output_dir / "model_features.json"
         metrics_path = output_dir / "metrics.json"
-        
+
         # Save model
-        with open(model_path, 'wb') as f:
+        with open(model_path, "wb") as f:
             pickle.dump(model, f)
         print(f"Model saved to {model_path}")
-        
+
         # Save feature names (order matters for prediction)
         feature_names = list(X_train.columns)
-        with open(features_path, 'w') as f:
+        with open(features_path, "w") as f:
             json.dump(feature_names, f, indent=2)
         print(f"Feature names saved to {features_path}")
-        
+
         # Save metrics for CI/CD
         metrics_output = {
             **all_metrics,
@@ -319,22 +308,30 @@ def train_model(
             "data_vintage": "2014-2015",
             "data_location": "King County (Seattle), WA",
             "features_added_in_v2.1": [
-                "lat", "long", "waterfront", "view", "condition", "grade",
-                "yr_built", "yr_renovated", "sqft_living15", "sqft_lot15"
+                "lat",
+                "long",
+                "waterfront",
+                "view",
+                "condition",
+                "grade",
+                "yr_built",
+                "yr_renovated",
+                "sqft_living15",
+                "sqft_lot15",
             ],
         }
-        with open(metrics_path, 'w') as f:
+        with open(metrics_path, "w") as f:
             json.dump(metrics_output, f, indent=2)
         print(f"Metrics saved to {metrics_path}")
-        
+
         # Log artifacts to MLflow
         _log_artifact(str(model_path))
         _log_artifact(str(features_path))
         _log_artifact(str(metrics_path))
-        
+
         # Log model to MLflow Model Registry
         _log_sklearn_model(model, "model", feature_names)
-        
+
     return model, all_metrics
 
 
@@ -342,10 +339,13 @@ def train_model(
 # MLFLOW HELPERS (graceful degradation if not available)
 # ==============================================================================
 
+
 class _NoOpContext:
     """No-op context manager when MLflow is unavailable."""
+
     def __enter__(self):
         return self
+
     def __exit__(self, *args):
         pass
 
@@ -354,13 +354,13 @@ def _get_mlflow_context(experiment_name: str, run_name: str):
     """Get MLflow run context or no-op context."""
     if not MLFLOW_AVAILABLE:
         return _NoOpContext()
-    
+
     # Set or create experiment
     experiment = mlflow.get_experiment_by_name(experiment_name)
     if experiment is None:
         mlflow.create_experiment(experiment_name)
     mlflow.set_experiment(experiment_name)
-    
+
     return mlflow.start_run(run_name=run_name)
 
 
@@ -382,24 +382,22 @@ def _log_artifact(path: str):
         mlflow.log_artifact(path)
 
 
-def _log_sklearn_model(model, artifact_path: str, feature_names: List[str]):
+def _log_sklearn_model(model, artifact_path: str, feature_names: list[str]):
     """Log sklearn model to MLflow if available."""
     if MLFLOW_AVAILABLE:
         # Create input signature
         try:
             from mlflow.models.signature import infer_signature
+
             # Create dummy input for signature
-            dummy_input = pd.DataFrame(
-                [[0.0] * len(feature_names)],
-                columns=feature_names
-            )
+            dummy_input = pd.DataFrame([[0.0] * len(feature_names)], columns=feature_names)
             signature = infer_signature(dummy_input, model.predict(dummy_input))
-            
+
             mlflow.sklearn.log_model(
                 model,
                 artifact_path=artifact_path,
                 signature=signature,
-                registered_model_name=MODEL_REGISTRY_NAME
+                registered_model_name=MODEL_REGISTRY_NAME,
             )
             print(f"Model logged to MLflow registry as '{MODEL_REGISTRY_NAME}'")
         except Exception as e:
@@ -412,35 +410,32 @@ def _log_sklearn_model(model, artifact_path: str, feature_names: List[str]):
 # CLI ENTRY POINT
 # ==============================================================================
 
+
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Train the Real Estate Price Predictor model",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--k-neighbors", "-k",
-        type=int,
-        default=5,
-        help="Number of neighbors for KNN algorithm"
+        "--k-neighbors", "-k", type=int, default=5, help="Number of neighbors for KNN algorithm"
     )
     parser.add_argument(
-        "--test-size", "-t",
+        "--test-size",
+        "-t",
         type=float,
         default=0.25,
-        help="Fraction of data to use for testing (0.0-1.0)"
+        help="Fraction of data to use for testing (0.0-1.0)",
     )
     parser.add_argument(
-        "--experiment-name", "-e",
-        type=str,
-        default="real-estate-v2",
-        help="MLflow experiment name"
+        "--experiment-name", "-e", type=str, default="real-estate-v2", help="MLflow experiment name"
     )
     parser.add_argument(
-        "--run-name", "-r",
+        "--run-name",
+        "-r",
         type=str,
         default=None,
-        help="MLflow run name (auto-generated if not provided)"
+        help="MLflow run name (auto-generated if not provided)",
     )
     return parser.parse_args()
 
@@ -448,34 +443,34 @@ def parse_args():
 def main():
     """Main entry point for training."""
     args = parse_args()
-    
+
     print("\n" + "=" * 60)
     print("REAL ESTATE PRICE PREDICTOR - MODEL TRAINING")
     print("=" * 60)
-    print(f"Data: King County (Seattle) housing sales 2014-2015")
-    print(f"Model: KNeighborsRegressor with RobustScaler")
+    print("Data: King County (Seattle) housing sales 2014-2015")
+    print("Model: KNeighborsRegressor with RobustScaler")
     print(f"MLflow tracking: {'Enabled' if MLFLOW_AVAILABLE else 'Disabled'}")
     print("=" * 60 + "\n")
-    
+
     try:
         model, metrics = train_model(
             k_neighbors=args.k_neighbors,
             test_size=args.test_size,
             experiment_name=args.experiment_name,
-            run_name=args.run_name
+            run_name=args.run_name,
         )
-        
+
         print("\n[SUCCESS] Training completed successfully!")
         print(f"          Model artifacts saved to: {OUTPUT_DIR}/")
-        
+
         # Return success
         return 0
-        
+
     except FileNotFoundError as e:
         print(f"\n[ERROR] Data file not found: {e}")
         print("        Make sure data files are in the 'data/' directory.")
         return 1
-        
+
     except Exception as e:
         print(f"\n[ERROR] Training failed with error: {e}")
         return 1

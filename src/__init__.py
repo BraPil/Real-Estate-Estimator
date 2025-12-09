@@ -6,4 +6,3 @@ This package will contain:
 - FastAPI application entrypoint and routers
 - Supporting utilities and configuration
 """
-

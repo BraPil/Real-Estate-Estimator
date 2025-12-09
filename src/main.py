@@ -11,7 +11,7 @@ This module creates and configures the FastAPI application, including:
 Usage:
     Development:
         uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-    
+
     Production:
         uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
 
@@ -23,8 +23,8 @@ API Documentation:
 
 import logging
 import sys
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,7 +38,7 @@ from src.services.model_service import get_model_service, reset_model_service
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger(__name__)
 
@@ -46,35 +46,39 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Application lifespan manager for startup and shutdown events.
-    
+
     On startup:
         - Load settings
         - Initialize model service (loads model)
         - Initialize feature service (loads demographics)
-    
+
     On shutdown:
         - Clean up resources
     """
     # Startup
     logger.info("Starting Real Estate Price Predictor API...")
-    settings = get_settings()
-    
+    get_settings()  # Initialize settings
+
     try:
         # Initialize services (this loads model and demographics into memory)
         logger.info("Loading model...")
         model_service = get_model_service()
-        logger.info("Model loaded: version=%s, features=%d", 
-                   model_service.model_version,
-                   len(model_service.feature_names))
-        
+        logger.info(
+            "Model loaded: version=%s, features=%d",
+            model_service.model_version,
+            len(model_service.feature_names),
+        )
+
         logger.info("Loading demographics data...")
         feature_service = get_feature_service()
-        logger.info("Demographics loaded: zipcodes=%d, features=%d",
-                   len(feature_service.valid_zipcodes),
-                   len(feature_service.demographic_columns))
-        
+        logger.info(
+            "Demographics loaded: zipcodes=%d, features=%d",
+            len(feature_service.valid_zipcodes),
+            len(feature_service.demographic_columns),
+        )
+
         logger.info("API startup complete. Ready to serve predictions.")
-        
+
     except FileNotFoundError as e:
         logger.error("Failed to load required files: %s", str(e))
         logger.error("Ensure model is trained (python src/train.py) and data files are in place.")
@@ -82,9 +86,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     except Exception as e:
         logger.error("Unexpected error during startup: %s", str(e), exc_info=True)
         raise
-    
+
     yield  # Application runs here
-    
+
     # Shutdown
     logger.info("Shutting down Real Estate Price Predictor API...")
     reset_model_service()
@@ -134,16 +138,10 @@ phData Machine Learning Engineer interview project.
     """,
     version=settings.app_version,
     openapi_tags=[
-        {
-            "name": "Health",
-            "description": "API health and status endpoints"
-        },
-        {
-            "name": "Prediction",
-            "description": "Home price prediction endpoints"
-        }
+        {"name": "Health", "description": "API health and status endpoints"},
+        {"name": "Prediction", "description": "Home price prediction endpoints"},
     ],
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add CORS middleware for cross-origin requests
@@ -166,17 +164,12 @@ async def root():
         "message": "Real Estate Price Predictor API",
         "version": settings.app_version,
         "docs": "/docs",
-        "health": "/api/v1/health"
+        "health": "/api/v1/health",
     }
 
 
 # For running directly with Python (not recommended for production)
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "src.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+
+    uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

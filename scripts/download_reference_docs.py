@@ -13,14 +13,13 @@ Downloads and saves official documentation for key frameworks:
 Saves to Reference_Docs/ with proper organization.
 """
 
-import os
 import sys
-import requests
 import time
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
-import json
+
+import requests
 
 # Target frameworks and their documentation
 FRAMEWORKS = {
@@ -42,9 +41,8 @@ FRAMEWORKS = {
             "/deployment/",
             "/deployment/concepts/",
         ],
-        "folder": "FastAPI_Documentation"
+        "folder": "FastAPI_Documentation",
     },
-    
     "Docker": {
         "base_url": "https://docs.docker.com",
         "pages": [
@@ -56,9 +54,8 @@ FRAMEWORKS = {
             "/engine/reference/",
             "/develop/dev-best-practices/",
         ],
-        "folder": "Docker_Documentation"
+        "folder": "Docker_Documentation",
     },
-    
     "Pydantic": {
         "base_url": "https://docs.pydantic.dev",
         "pages": [
@@ -70,9 +67,8 @@ FRAMEWORKS = {
             "/latest/concepts/fields/",
             "/latest/api/fields/",
         ],
-        "folder": "Pydantic_Documentation"
+        "folder": "Pydantic_Documentation",
     },
-    
     "scikit-learn": {
         "base_url": "https://scikit-learn.org/stable",
         "pages": [
@@ -86,9 +82,8 @@ FRAMEWORKS = {
             "/modules/generated/sklearn.metrics.mean_absolute_error.html",
             "/modules/generated/sklearn.metrics.mean_squared_error.html",
         ],
-        "folder": "Scikit-Learn_Documentation"
+        "folder": "Scikit-Learn_Documentation",
     },
-    
     "Uvicorn": {
         "base_url": "https://www.uvicorn.org",
         "pages": [
@@ -96,9 +91,8 @@ FRAMEWORKS = {
             "/deployment/",
             "/settings/",
         ],
-        "folder": "Uvicorn_Documentation"
+        "folder": "Uvicorn_Documentation",
     },
-    
     "pytest": {
         "base_url": "https://docs.pytest.org/en/stable",
         "pages": [
@@ -107,44 +101,43 @@ FRAMEWORKS = {
             "/reference/",
             "/getting-started.html",
         ],
-        "folder": "pytest_Documentation"
-    }
+        "folder": "pytest_Documentation",
+    },
 }
+
 
 class DocumentationDownloader:
     def __init__(self, base_dir="Reference_Docs"):
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(exist_ok=True)
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Real-Estate-Estimator-DocDownloader/1.0'
-        })
+        self.session.headers.update({"User-Agent": "Real-Estate-Estimator-DocDownloader/1.0"})
         self.downloaded = []
         self.failed = []
-        
+
     def download_page(self, url, framework_folder):
         """Download a single page and save as markdown."""
         try:
             print(f"  Downloading: {url}")
             response = self.session.get(url, timeout=10)
             response.raise_for_status()
-            
+
             # Extract filename from URL
             parsed = urlparse(url)
-            path = parsed.path.strip('/')
-            filename = path.split('/')[-1] or 'index'
-            
-            if filename.endswith('.html'):
+            path = parsed.path.strip("/")
+            filename = path.split("/")[-1] or "index"
+
+            if filename.endswith(".html"):
                 filename = filename[:-5]
-            
-            filename = filename.replace('-', '_').replace('/', '_') + '.md'
-            
+
+            filename = filename.replace("-", "_").replace("/", "_") + ".md"
+
             # Save content
             folder_path = self.base_dir / framework_folder
             folder_path.mkdir(exist_ok=True)
-            
+
             file_path = folder_path / filename
-            
+
             # Create markdown with metadata
             markdown_content = f"""# {filename.replace('_', ' ')}
 
@@ -171,38 +164,38 @@ The original HTML documentation has been downloaded. Key information:
 **Note:** This is a snapshot of the official documentation.
 For the latest and most complete information, visit the original URL above.
 """
-            
-            with open(file_path, 'w', encoding='utf-8') as f:
+
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(markdown_content)
-            
+
             self.downloaded.append((framework_folder, filename))
             print(f"    ✓ Saved: {file_path}")
             time.sleep(0.5)  # Be polite to servers
-            
+
         except Exception as e:
             error_msg = f"{framework_folder}/{filename}: {str(e)}"
             self.failed.append(error_msg)
             print(f"    ✗ Failed: {error_msg}")
-    
+
     def download_framework(self, framework_name, config):
         """Download all pages for a framework."""
         print(f"\nDownloading {framework_name}...")
         print(f"  Base URL: {config['base_url']}")
         print(f"  Target folder: {config['folder']}")
-        
-        for page_path in config['pages']:
-            url = urljoin(config['base_url'], page_path)
-            self.download_page(url, config['folder'])
-    
+
+        for page_path in config["pages"]:
+            url = urljoin(config["base_url"], page_path)
+            self.download_page(url, config["folder"])
+
     def create_framework_index(self, framework_name, config):
         """Create index file for framework documentation."""
-        folder_path = self.base_dir / config['folder']
+        folder_path = self.base_dir / config["folder"]
         index_file = folder_path / "README.md"
-        
+
         # List downloaded files
         files = list(folder_path.glob("*.md"))
         files.sort()
-        
+
         index_content = f"""# {framework_name} Documentation
 
 **Downloaded:** {datetime.now().isoformat()}  
@@ -213,11 +206,11 @@ For the latest and most complete information, visit the original URL above.
 | File | Purpose |
 |------|---------|
 """
-        
+
         for f in files:
             if f.name != "README.md":
                 index_content += f"| [{f.stem}]({f.name}) | Documentation page |\n"
-        
+
         index_content += f"""
 
 ## Quick Links
@@ -237,54 +230,54 @@ For the latest and most complete information, visit the original URL above.
 **Note:** This documentation was automatically downloaded for offline reference.
 For the latest documentation, visit the official website above.
 """
-        
-        with open(index_file, 'w', encoding='utf-8') as f:
+
+        with open(index_file, "w", encoding="utf-8") as f:
             f.write(index_content)
-        
+
         print(f"  ✓ Created index: {index_file}")
-    
+
     def run(self):
         """Run downloader for all frameworks."""
         print("=" * 60)
         print("DOCUMENTATION DOWNLOADER")
         print(f"Downloading documentation to: {self.base_dir}")
         print("=" * 60)
-        
+
         for framework_name, config in FRAMEWORKS.items():
             try:
                 self.download_framework(framework_name, config)
                 self.create_framework_index(framework_name, config)
             except Exception as e:
                 print(f"\n✗ Error downloading {framework_name}: {e}")
-        
+
         # Print summary
         self.print_summary()
-    
+
     def print_summary(self):
         """Print download summary."""
         print("\n" + "=" * 60)
         print("DOWNLOAD SUMMARY")
         print("=" * 60)
-        
+
         print(f"\n✓ Successfully downloaded: {len(self.downloaded)} pages")
         if self.downloaded:
             for framework, filename in self.downloaded[:10]:
                 print(f"  - {framework}: {filename}")
             if len(self.downloaded) > 10:
                 print(f"  ... and {len(self.downloaded) - 10} more")
-        
+
         print(f"\n✗ Failed: {len(self.failed)} pages")
         if self.failed:
             for error in self.failed[:5]:
                 print(f"  - {error}")
             if len(self.failed) > 5:
                 print(f"  ... and {len(self.failed) - 5} more")
-        
+
         print(f"\nDocumentation saved to: {self.base_dir}")
-        print(f"Next steps:")
-        print(f"  1. Review downloaded documentation")
-        print(f"  2. Create master index (master_docs_index.md)")
-        print(f"  3. Update search index for quick lookup")
+        print("Next steps:")
+        print("  1. Review downloaded documentation")
+        print("  2. Create master index (master_docs_index.md)")
+        print("  3. Update search index for quick lookup")
         print("=" * 60)
 
 
@@ -296,16 +289,12 @@ def main():
     else:
         # Default to Reference_Docs in project root
         base_dir = "Reference_Docs"
-    
+
     downloader = DocumentationDownloader(base_dir)
     downloader.run()
 
 
 if __name__ == "__main__":
     main()
-
-
-
-
 
 

@@ -6,8 +6,8 @@ This package contains business logic services:
 - feature_service: Demographics lookup and feature enrichment
 """
 
-from src.services.model_service import ModelService, get_model_service
 from src.services.feature_service import FeatureService, get_feature_service
+from src.services.model_service import ModelService, get_model_service
 
 __all__ = [
     "ModelService",

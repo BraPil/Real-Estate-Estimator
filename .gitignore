@@ -41,3 +41,6 @@ Reference_Docs/Scikit-Learn_Documentation/
 Reference_Docs/Uvicorn_Documentation/
 Reference_Docs/pytest_Documentation/
 Reference_Docs/REFERENCE_DOCUMENTATION_INDEX.md
+
+# Large local data files (King County assessment data - too large for git)
+Reference_Docs/King_County_Assessment_data_ALL/
