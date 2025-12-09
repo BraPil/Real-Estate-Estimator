@@ -1,0 +1,19 @@
+{
+  "params": {
+    "n_estimators": 355,
+    "max_depth": 10,
+    "learning_rate": 0.11341462583695337,
+    "subsample": 0.7456110134210893,
+    "colsample_bytree": 0.9478882036018803,
+    "min_child_weight": 3,
+    "gamma": 0.049302866058105174,
+    "reg_alpha": 0.40732326372387984,
+    "reg_lambda": 1.5573906239022661
+  },
+  "cv_mae": 115344.2921875,
+  "test_mae": 112955.2265625,
+  "test_r2": 0.8768964409828186,
+  "test_mape": 11.430256842481608,
+  "n_trials": 30,
+  "timestamp": "2025-12-09T19:15:58.321454"
+}

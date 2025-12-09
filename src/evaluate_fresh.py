@@ -35,7 +35,7 @@ except ImportError:
 # CONFIGURATION
 # ==============================================================================
 
-FRESH_DATA_PATH = Path("data/assessment_2020_plus_v3.csv")
+FRESH_DATA_PATH = Path("data/assessment_2020_plus_v4.csv")  # V4 with temporal features
 DEMOGRAPHICS_PATH = Path("data/zipcode_demographics.csv")
 MODEL_PATH = Path("model/model.pkl")
 FEATURES_PATH = Path("model/model_features.json")
@@ -44,13 +44,15 @@ OUTPUT_PATH = Path("model/evaluation_fresh_report.json")
 RANDOM_STATE = 42
 TEST_SIZE = 0.20
 
-# Features from fresh data (17 base + demographics = 43)
+# Features from fresh data (17 base + 4 temporal + demographics = 47)
 BASE_FEATURES = [
     "bedrooms", "bathrooms", "sqft_living", "sqft_lot", "floors",
     "waterfront", "view", "condition", "grade", "sqft_above",
     "sqft_basement", "yr_built", "yr_renovated", "lat", "long",
     "sqft_living15", "sqft_lot15"
 ]
+
+TEMPORAL_FEATURES = ["sale_year", "sale_month", "sale_quarter", "sale_dow"]
 
 
 # ==============================================================================
@@ -80,6 +82,12 @@ def load_fresh_data(data_path: Path = FRESH_DATA_PATH, test_size: float = TEST_S
     
     # Build feature list
     feature_cols = BASE_FEATURES.copy()
+    
+    # Add temporal features (V3.3)
+    for col in TEMPORAL_FEATURES:
+        if col in df.columns:
+            feature_cols.append(col)
+    
     feature_cols.extend(demo_cols)
     
     # Handle missing values
