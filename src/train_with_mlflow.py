@@ -82,17 +82,24 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 MODEL_DIR = Path(__file__).parent.parent / "model"
 RANDOM_STATE = 42
 
-# Default XGBoost parameters (V2.5 validated)
+# Data source options
+DATA_SOURCES = {
+    "original": "kc_house_data.csv",  # 2014-2015 data (21K records)
+    "fresh": "assessment_2020_plus_v4.csv",  # 2020+ data (143K records)
+}
+DEFAULT_DATA_SOURCE = "fresh"  # V3.3: Use fresh data by default
+
+# Default XGBoost parameters (V3.3 Optuna-tuned)
 DEFAULT_PARAMS = {
-    "n_estimators": 500,
-    "max_depth": 6,
-    "learning_rate": 0.05,
-    "subsample": 0.8,
-    "colsample_bytree": 0.8,
+    "n_estimators": 355,
+    "max_depth": 10,
+    "learning_rate": 0.1134,
+    "subsample": 0.7456,
+    "colsample_bytree": 0.9479,
     "min_child_weight": 3,
-    "gamma": 0.1,
-    "reg_alpha": 0.1,
-    "reg_lambda": 1.0,
+    "gamma": 0.0493,
+    "reg_alpha": 0.4073,
+    "reg_lambda": 1.5574,
 }
 
 
@@ -101,20 +108,22 @@ DEFAULT_PARAMS = {
 # =============================================================================
 
 
-def load_data() -> tuple[pd.DataFrame, pd.Series, list]:
+def load_data(data_source: str = DEFAULT_DATA_SOURCE) -> tuple[pd.DataFrame, pd.Series, list]:
     """
     Load and prepare training data.
+
+    Args:
+        data_source: Either "original" (2014-15) or "fresh" (2020+)
 
     Returns:
         X: Feature DataFrame
         y: Target Series (prices)
         feature_names: List of feature column names
     """
-    print("Loading data...")
+    print(f"Loading data (source: {data_source})...")
 
-    # Define columns to use
-    sales_columns = [
-        "price",
+    # Base feature columns (used by both data sources)
+    base_features = [
         "bedrooms",
         "bathrooms",
         "sqft_living",
@@ -132,19 +141,43 @@ def load_data() -> tuple[pd.DataFrame, pd.Series, list]:
         "long",
         "sqft_living15",
         "sqft_lot15",
-        "zipcode",
     ]
 
-    # Load data
-    sales = pd.read_csv(DATA_DIR / "kc_house_data.csv", usecols=sales_columns)
+    # V3.3 temporal features (fresh data only)
+    temporal_features = ["sale_year", "sale_month", "sale_quarter", "sale_dow"]
+
+    # Load data based on source
+    data_file = DATA_DIR / DATA_SOURCES[data_source]
+    df = pd.read_csv(data_file)
     demographics = pd.read_csv(DATA_DIR / "zipcode_demographics.csv")
 
-    # Merge
-    merged = sales.merge(demographics, on="zipcode", how="inner")
+    # Merge with demographics
+    df["zipcode"] = df["zipcode"].astype(str).str.strip()
+    demographics["zipcode"] = demographics["zipcode"].astype(str).str.strip()
+    merged = df.merge(demographics, on="zipcode", how="inner")
+
+    # Build feature list
+    feature_cols = base_features.copy()
+
+    # Add temporal features if available (V3.3+)
+    for col in temporal_features:
+        if col in merged.columns:
+            feature_cols.append(col)
+
+    # Add demographic columns
+    demo_cols = [c for c in demographics.columns if c != "zipcode"]
+    feature_cols.extend(demo_cols)
+
+    # Handle missing values
+    for col in feature_cols:
+        if col in merged.columns:
+            merged[col] = pd.to_numeric(merged[col], errors="coerce").fillna(0)
+        else:
+            merged[col] = 0
 
     # Separate features and target
     y = merged["price"]
-    X = merged.drop(columns=["price", "zipcode"])
+    X = merged[feature_cols]
 
     print(f"Loaded {len(X)} samples, {len(X.columns)} features")
 
@@ -240,6 +273,7 @@ def train_with_tracking(
     params: dict[str, Any] = None,
     test_size: float = 0.2,
     register_model: bool = False,
+    data_source: str = DEFAULT_DATA_SOURCE,
 ) -> str:
     """
     Full training pipeline with MLflow tracking.
@@ -256,6 +290,7 @@ def train_with_tracking(
         params: Model hyperparameters (uses defaults if None)
         test_size: Fraction of data for testing
         register_model: Whether to register in model registry
+        data_source: "original" (2014-15) or "fresh" (2020+)
 
     Returns:
         run_id: The MLflow run ID
@@ -273,10 +308,11 @@ def train_with_tracking(
 
     print("\n" + "=" * 60)
     print(f" MLflow Training Run: {run_name}")
+    print(f" Data Source: {data_source}")
     print("=" * 60)
 
     # Load data
-    X, y, feature_names = load_data()
+    X, y, feature_names = load_data(data_source=data_source)
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
@@ -297,6 +333,7 @@ def train_with_tracking(
             mlflow.log_param(key, value)
 
         # Log data info
+        mlflow.log_param("data_source", data_source)
         mlflow.log_param("n_samples", len(X))
         mlflow.log_param("n_features", len(feature_names))
         mlflow.log_param("test_size", test_size)
@@ -304,7 +341,7 @@ def train_with_tracking(
 
         # Log tags (metadata, not parameters)
         mlflow.set_tag("model_type", "XGBoost")
-        mlflow.set_tag("version", "v3.1")
+        mlflow.set_tag("version", "v3.3")
         mlflow.set_tag("stage", "development")
 
         # ----- TRAIN MODEL -----
@@ -392,6 +429,14 @@ def parse_args():
     parser.add_argument("--run-name", type=str, default=None, help="Name for this training run")
 
     parser.add_argument(
+        "--data-source",
+        type=str,
+        default=DEFAULT_DATA_SOURCE,
+        choices=["original", "fresh"],
+        help="Data source: 'original' (2014-15) or 'fresh' (2020+)",
+    )
+
+    parser.add_argument(
         "--n-estimators", type=int, default=DEFAULT_PARAMS["n_estimators"], help="Number of trees"
     )
 
@@ -426,6 +471,7 @@ def main():
         params=params,
         test_size=args.test_size,
         register_model=args.register,
+        data_source=args.data_source,
     )
 
     print("\nTo view this run in MLflow UI:")
