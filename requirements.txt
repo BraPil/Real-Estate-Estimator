@@ -13,10 +13,15 @@ numpy>=1.26.0
 xgboost>=2.0.0
 lightgbm>=4.0.0
 
-# MLOps
+# V3.1: MLOps & CI/CD
 mlflow>=2.0.0
+scipy>=1.11.0
+
+# Code quality (for CI)
+ruff>=0.1.0
+black>=23.0.0
 
 # Testing
 pytest>=8.0.0
+pytest-cov>=4.0.0
 httpx>=0.27.0
-

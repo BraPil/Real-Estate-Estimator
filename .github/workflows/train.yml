@@ -1,0 +1,220 @@
+# =============================================================================
+# Training Workflow - Model Retraining Pipeline
+# =============================================================================
+#
+# This workflow handles model training with MLflow tracking.
+# It can be triggered:
+# - Manually (workflow_dispatch) with custom parameters
+# - On schedule (e.g., weekly retraining)
+# - When data files change
+#
+# What it does:
+# 1. Load training data
+# 2. Train model with specified parameters
+# 3. Evaluate against baseline
+# 4. Log everything to MLflow
+# 5. Optionally register model if improved
+#
+# MLflow Integration:
+# - All runs are tracked in the mlflow/ directory
+# - Metrics, parameters, and artifacts are logged
+# - Models can be registered for staging/production
+#
+# =============================================================================
+
+name: Train Model
+
+# When to run this workflow
+on:
+  # Manual trigger with inputs
+  workflow_dispatch:
+    inputs:
+      run_name:
+        description: 'Name for this training run'
+        required: false
+        default: ''
+        type: string
+      n_estimators:
+        description: 'Number of trees (XGBoost)'
+        required: false
+        default: '500'
+        type: string
+      max_depth:
+        description: 'Max tree depth'
+        required: false
+        default: '6'
+        type: string
+      learning_rate:
+        description: 'Learning rate'
+        required: false
+        default: '0.05'
+        type: string
+      register_model:
+        description: 'Register model if improved?'
+        required: false
+        default: false
+        type: boolean
+  
+  # Trigger on data changes (uncomment when ready)
+  # push:
+  #   paths:
+  #     - 'data/**'
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ===========================================================================
+  # Job 1: Train the model
+  # ===========================================================================
+  train:
+    name: Train Model
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # Set run name (from input or auto-generate)
+      - name: Set run name
+        id: run_name
+        run: |
+          if [ -n "${{ inputs.run_name }}" ]; then
+            echo "name=${{ inputs.run_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=gh-actions-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          fi
+      
+      # Run training with MLflow tracking
+      - name: Train model with MLflow
+        run: |
+          python src/train_with_mlflow.py \
+            --run-name "${{ steps.run_name.outputs.name }}" \
+            --n-estimators ${{ inputs.n_estimators || '500' }} \
+            --max-depth ${{ inputs.max_depth || '6' }} \
+            --learning-rate ${{ inputs.learning_rate || '0.05' }} \
+            ${{ inputs.register_model && '--register' || '' }}
+      
+      # Upload MLflow data as artifact
+      - name: Upload MLflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-data
+          path: mlflow/
+          retention-days: 30
+      
+      # Save training report
+      - name: Generate training report
+        run: |
+          echo "# Training Report" > training_report.md
+          echo "" >> training_report.md
+          echo "**Run Name:** ${{ steps.run_name.outputs.name }}" >> training_report.md
+          echo "**Date:** $(date -Iseconds)" >> training_report.md
+          echo "" >> training_report.md
+          echo "## Parameters" >> training_report.md
+          echo "- n_estimators: ${{ inputs.n_estimators || '500' }}" >> training_report.md
+          echo "- max_depth: ${{ inputs.max_depth || '6' }}" >> training_report.md
+          echo "- learning_rate: ${{ inputs.learning_rate || '0.05' }}" >> training_report.md
+          echo "" >> training_report.md
+          echo "## Artifacts" >> training_report.md
+          echo "MLflow tracking data uploaded as workflow artifact." >> training_report.md
+      
+      - name: Upload training report
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-report
+          path: training_report.md
+
+  # ===========================================================================
+  # Job 2: Evaluate against baseline
+  # ===========================================================================
+  evaluate:
+    name: Evaluate Model
+    runs-on: ubuntu-latest
+    needs: train
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # Download MLflow artifacts from training job
+      - name: Download MLflow artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mlflow-data
+          path: mlflow/
+      
+      # Compare with baseline metrics
+      - name: Compare with baseline
+        run: |
+          python -c "
+          import json
+          from pathlib import Path
+          
+          # Load current baseline metrics
+          metrics_path = Path('model/metrics.json')
+          if metrics_path.exists():
+              with open(metrics_path) as f:
+                  baseline = json.load(f)
+              baseline_mae = baseline.get('mae', 'N/A')
+              print(f'Baseline MAE: {baseline_mae}')
+          else:
+              print('No baseline metrics found')
+          
+          # Load latest MLflow run metrics
+          mlflow_dir = Path('mlflow')
+          if mlflow_dir.exists():
+              print(f'MLflow directory exists: {list(mlflow_dir.glob(\"*\"))}')
+          else:
+              print('No MLflow data found')
+          "
+
+  # ===========================================================================
+  # Job 3: Notify on completion
+  # ===========================================================================
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [train, evaluate]
+    if: always()
+    
+    steps:
+      - name: Training completed
+        run: |
+          echo "Training workflow completed!"
+          echo "Train job: ${{ needs.train.result }}"
+          echo "Evaluate job: ${{ needs.evaluate.result }}"
+          
+          if [[ "${{ needs.train.result }}" == "success" ]]; then
+            echo "Training successful! Check artifacts for MLflow data."
+          else
+            echo "Training failed. Check logs for details."
+          fi

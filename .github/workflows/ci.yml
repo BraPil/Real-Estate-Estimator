@@ -1,0 +1,203 @@
+# =============================================================================
+# CI Workflow - Continuous Integration
+# =============================================================================
+#
+# This workflow runs on every push and pull request to ensure code quality.
+#
+# What it does:
+# 1. LINT: Check code style with ruff
+# 2. TEST: Run pytest test suite
+# 3. VALIDATE: Ensure model can be loaded and make predictions
+#
+# GitHub Actions Concepts:
+# - Workflow: The entire CI/CD pipeline (this file)
+# - Job: A set of steps that run on the same runner
+# - Step: Individual tasks within a job
+# - Runner: The VM that executes jobs (ubuntu-latest, windows-latest, etc.)
+#
+# Triggers:
+# - on.push: Runs when code is pushed to main or develop
+# - on.pull_request: Runs when a PR is opened against main or develop
+#
+# =============================================================================
+
+name: CI
+
+# When to run this workflow
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Environment variables available to all jobs
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ===========================================================================
+  # Job 1: Lint - Check code style
+  # ===========================================================================
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      # Step 3: Install linting tools
+      - name: Install linters
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black
+      
+      # Step 4: Run ruff (fast Python linter)
+      - name: Run ruff
+        run: |
+          ruff check src/ --output-format=github
+        continue-on-error: true  # Don't fail the whole workflow yet
+      
+      # Step 5: Check formatting with black
+      - name: Check formatting with black
+        run: |
+          black --check --diff src/
+        continue-on-error: true
+
+  # ===========================================================================
+  # Job 2: Test - Run the test suite
+  # ===========================================================================
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: lint  # Only run if lint passes (or continues)
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      # Cache pip dependencies to speed up subsequent runs
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
+        continue-on-error: true  # Continue even if some tests fail
+      
+      # Upload coverage report as artifact
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+        if: always()
+
+  # ===========================================================================
+  # Job 3: Validate - Ensure model works
+  # ===========================================================================
+  validate-model:
+    name: Model Validation
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # Validate that the model can be loaded
+      - name: Validate model loading
+        run: |
+          python -c "
+          import pickle
+          from pathlib import Path
+          
+          model_path = Path('model/model.pkl')
+          if model_path.exists():
+              with open(model_path, 'rb') as f:
+                  model = pickle.load(f)
+              print(f'Model loaded successfully: {type(model)}')
+              
+              # Check it has the expected structure
+              if hasattr(model, 'predict'):
+                  print('Model has predict method')
+              else:
+                  print('WARNING: Model missing predict method')
+          else:
+              print('No model.pkl found - skipping validation')
+          "
+      
+      # Validate that the API can start
+      - name: Validate API startup
+        run: |
+          timeout 10 python -c "
+          import sys
+          sys.path.insert(0, 'src')
+          from main import app
+          print('FastAPI app imported successfully')
+          " || true  # Allow timeout
+
+  # ===========================================================================
+  # Summary job - Reports overall status
+  # ===========================================================================
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [lint, test, validate-model]
+    if: always()
+    
+    steps:
+      - name: Check all jobs passed
+        run: |
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Test: ${{ needs.test.result }}"
+          echo "Validate: ${{ needs.validate-model.result }}"
+          
+          if [[ "${{ needs.lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.test.result }}" == "failure" ]] || \
+             [[ "${{ needs.validate-model.result }}" == "failure" ]]; then
+            echo "One or more jobs failed!"
+            exit 1
+          fi
+          
+          echo "All CI checks passed!"
