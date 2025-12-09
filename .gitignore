@@ -25,7 +25,7 @@ model/
 mlruns/
 
 # Local data copies (if you create a top-level data/ for convenience)
-data/
+/data/
 
 # Logs and exploratory/generated docs (internal, not needed for phData repo)
 logs/

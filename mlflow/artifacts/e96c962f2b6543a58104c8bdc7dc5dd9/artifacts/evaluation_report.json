@@ -1,0 +1,26 @@
+{
+  "run_id": "e96c962f2b6543a58104c8bdc7dc5dd9",
+  "run_name": "train_20251209_161408",
+  "timestamp": "2025-12-09T16:14:24.996588",
+  "test_metrics": {
+    "mae": 66183.13258298635,
+    "rmse": 134021.7055543927,
+    "r2": 0.8811866107447135,
+    "mape": 12.062876812137993
+  },
+  "cv_metrics": {
+    "cv_mae_mean": 63272.887255746136,
+    "cv_mae_std": 1800.2087951749945
+  },
+  "parameters": {
+    "n_estimators": 500,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 3,
+    "gamma": 0.1,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0
+  }
+}
