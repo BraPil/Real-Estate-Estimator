@@ -1,0 +1,52 @@
+{
+  "model_version": "V3.2",
+  "data_source": "data/assessment_2020_plus_v3.csv",
+  "evaluation_time": "2025-12-09T18:10:30.005312",
+  "test_samples": 31171,
+  "metrics": {
+    "r2_score": 0.6754,
+    "mae": 242328.72,
+    "rmse": 468401.46,
+    "mape_percent": 30.27
+  },
+  "residuals": {
+    "mean_residual": -6624.32,
+    "std_residual": 468354.6,
+    "median_residual": -3638.0,
+    "skewness": 1.7804,
+    "bias": "overpredicting"
+  },
+  "tier_analysis": {
+    "under_500k": {
+      "n_samples": 3740,
+      "mae": 231081.14,
+      "mape": 106.87
+    },
+    "500k_to_750k": {
+      "n_samples": 8586,
+      "mae": 127861.79,
+      "mape": 20.44
+    },
+    "750k_to_1m": {
+      "n_samples": 7153,
+      "mae": 170912.05,
+      "mape": 19.94
+    },
+    "1m_to_1.5m": {
+      "n_samples": 6143,
+      "mae": 225187.41,
+      "mape": 18.53
+    },
+    "over_1.5m": {
+      "n_samples": 5549,
+      "mae": 538061.62,
+      "mape": 20.15
+    }
+  },
+  "comparison_to_v2.5": {
+    "note": "V2.5 trained on 2014-2015 data, V3.2 on 2020+ data",
+    "v2.5_cv_mae": 63529,
+    "v3.2_test_mae": 242328.72,
+    "price_inflation": "2015 median ~$450K vs 2020+ median ~$845K (+88%)"
+  }
+}

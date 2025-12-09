@@ -100,6 +100,19 @@ def load_assessment_data(
     )
     print(f"    Parcels: {len(parcel):,}")
 
+    # Load parcel centroids (from GIS data)
+    centroids_path = OUTPUT_DIR / "parcel_centroids.csv"
+    if centroids_path.exists():
+        print("  Loading parcel_centroids.csv...")
+        centroids = pd.read_csv(
+            centroids_path,
+            dtype={"Major": str, "Minor": str},
+        )
+        print(f"    Centroids: {len(centroids):,}")
+    else:
+        print("  WARNING: parcel_centroids.csv not found - lat/long will be synthetic")
+        centroids = None
+
     # Merge: Sales + Buildings
     print("  Merging sales with buildings...")
     merged = sales.merge(resbldg, on=["Major", "Minor"], how="inner")
@@ -109,6 +122,13 @@ def load_assessment_data(
     print("  Merging with parcels...")
     merged = merged.merge(parcel, on=["Major", "Minor"], how="inner")
     print(f"    After parcel join: {len(merged):,}")
+
+    # Merge: + Centroids (if available)
+    if centroids is not None:
+        print("  Merging with centroids...")
+        merged = merged.merge(centroids, on=["Major", "Minor"], how="left")
+        matched = merged["lat"].notna().sum()
+        print(f"    Centroids matched: {matched:,} ({100*matched/len(merged):.1f}%)")
 
     if sample_size and len(merged) > sample_size:
         merged = merged.sample(n=sample_size, random_state=42)
@@ -195,9 +215,16 @@ def transform_to_model_format(df: pd.DataFrame) -> pd.DataFrame:
     result["waterfront"] = calculate_waterfront(df)
     result["view"] = calculate_view(df)
 
-    # Fields we can't derive (set to reasonable defaults or null)
-    result["lat"] = np.nan  # Would need GIS parcel data (separate dataset)
-    result["long"] = np.nan  # Would need GIS parcel data (separate dataset)
+    # Lat/Long from GIS parcel centroids (if available in source data)
+    if "lat" in df.columns and "long" in df.columns:
+        result["lat"] = df["lat"]
+        result["long"] = df["long"]
+        lat_count = result["lat"].notna().sum()
+        print(f"  Real lat/long available: {lat_count:,} ({100*lat_count/len(result):.1f}%)")
+    else:
+        result["lat"] = np.nan
+        result["long"] = np.nan
+        print("  WARNING: No lat/long in source data - using NaN")
     
     # Neighbor features: use zipcode-level averages as proxy for "nearest 15 neighbors"
     # This is more accurate than setting to self since zipcode captures neighborhood

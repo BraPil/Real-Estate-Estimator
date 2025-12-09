@@ -36,7 +36,7 @@ from mlflow_config import setup_mlflow, MLFLOW_MODEL_NAME
 DATA_DIR = Path("data")
 MODEL_DIR = Path("model")
 DEMOGRAPHICS_PATH = DATA_DIR / "zipcode_demographics.csv"
-FRESH_DATA_PATH = DATA_DIR / "assessment_2020_plus_v2.csv"  # V2 with improved neighbor features
+FRESH_DATA_PATH = DATA_DIR / "assessment_2020_plus_v3.csv"  # V3 with real lat/long from GIS
 
 # V2.5 tuned hyperparameters (use as starting point)
 DEFAULT_PARAMS = {
@@ -223,21 +223,30 @@ def train_with_mlflow(run_name=None):
         
     print(f"\n  MLflow Run ID: {run_id}")
     
-    return pipeline, metrics, run_id
+    return pipeline, metrics, run_id, feature_names
 
 
-def save_model(pipeline, output_path=None):
-    """Save model to disk."""
+def save_model(pipeline, feature_names, output_path=None):
+    """Save model and features to disk."""
+    import json
+    
     if output_path is None:
         output_path = MODEL_DIR / "model.pkl"
     
     MODEL_DIR.mkdir(exist_ok=True)
     
+    # Save model
     with open(output_path, "wb") as f:
         pickle.dump(pipeline, f)
     
     print(f"\nModel saved to: {output_path}")
     print(f"Model size: {output_path.stat().st_size / 1024:.1f} KB")
+    
+    # Save feature names (required by evaluate.py)
+    features_path = MODEL_DIR / "model_features.json"
+    with open(features_path, "w") as f:
+        json.dump(feature_names, f, indent=2)
+    print(f"Features saved to: {features_path}")
 
 
 def main():
@@ -247,10 +256,10 @@ def main():
     print("=" * 80)
     
     # Train with MLflow tracking
-    pipeline, metrics, run_id = train_with_mlflow()
+    pipeline, metrics, run_id, feature_names = train_with_mlflow()
     
-    # Save model
-    save_model(pipeline)
+    # Save model and features
+    save_model(pipeline, feature_names)
     
     # Summary
     print("\n" + "=" * 80)
