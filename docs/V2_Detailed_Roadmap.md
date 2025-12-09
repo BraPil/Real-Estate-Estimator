@@ -1,8 +1,10 @@
-# V2/V3 Detailed Roadmap
+# V2 Detailed Roadmap: Model Development
 
 **Project:** Real Estate Price Predictor  
 **Date:** 2025-12-08  
-**Status:** V2.5 Complete, V3.1 In Progress
+**Status:** V2 Series Complete (V2.5 is final)
+
+> **Note:** V3 roadmap has been moved to `docs/V3_Detailed_Roadmap.md`
 
 ---
 
@@ -17,9 +19,10 @@
 | V2.3 | Hyperparameter Tuning | ✅ **COMPLETE** | **MAE -5.9%**, manhattan + distance-weighted |
 | V2.4 | Model Alternatives | ✅ **COMPLETE** | XGBoost wins: MAE $67,041 (-20.7%) |
 | V2.5 | Robust Evaluation | ✅ **COMPLETE** | K-fold CV MAE $63,529, 95% CI |
-| V2.6 | Fresh Data (Future) | 📋 PLANNED | Updated housing data (if available) |
+| V2.6 | Fresh Data | ➡️ **MOVED TO V3.2** | See V3_Detailed_Roadmap.md |
 | V2.7 | Price-Tiered Models | ⏸️ **ARCHIVED** | Explored, +0.17% insufficient ROI |
-| **V3.1** | **MLOps & CI/CD** | 🚀 **IN PROGRESS** | GitHub Actions, MLflow, automated pipelines |
+
+> **V3 Series:** See `docs/V3_Detailed_Roadmap.md` for MLOps & Data Pipeline roadmap
 
 ### Decision Log (2025-12-08)
 - **V2.1.2 Adaptive Routing:** Discovered price-tier pattern (confirmed statistically) but routing accuracy too low (52%) to beat always-use-`/predict-full`. Documented as interesting finding for future exploration.
@@ -257,105 +260,35 @@ for name, model in models.items():
 
 ---
 
-## V3.1: MLOps & CI/CD Infrastructure 🚀 **IN PROGRESS**
+## V2 Series Summary
 
-**Goal:** Production-ready ML infrastructure with automated pipelines.
+The V2 series focused on **model development and optimization**:
 
-### What is MLOps?
+| Version | Achievement | MAE Improvement |
+|---------|-------------|-----------------|
+| V2.1 | Feature expansion (7 → 17 features) | -12% |
+| V2.3 | Hyperparameter tuning | -5.9% |
+| V2.4 | XGBoost model | -20.7% |
+| V2.5 | Robust evaluation (CV + CI) | Validated |
+| **Total** | **From V1 baseline** | **-37.7%** |
 
-MLOps (Machine Learning Operations) applies DevOps practices to ML:
-- **Experiment Tracking**: Record what you tried and what worked
-- **Model Versioning**: Know exactly which model is deployed
-- **Automated Pipelines**: Train → Evaluate → Deploy without manual steps
-- **Monitoring**: Detect when model performance degrades
+### Final Model (V2.5)
+- **Model:** XGBoost (tuned)
+- **CV MAE:** $63,529 ± $2,150
+- **CV R²:** 0.8945 ± 0.0168
+- **Features:** 43 (17 home + 26 demographic)
 
-### Components Being Implemented
+### What's Next
 
-| Component | Tool | Purpose | Status |
-|-----------|------|---------|--------|
-| Experiment Tracking | MLflow | Log metrics, params, artifacts | 🔄 |
-| Model Registry | MLflow | Version control for models | 📋 |
-| CI Pipeline | GitHub Actions | Lint, test on every PR | 🔄 |
-| Training Pipeline | GitHub Actions | Automated training workflow | 📋 |
-| Deployment Pipeline | GitHub Actions | Staged rollout | 📋 |
+V3 series focuses on **MLOps and data infrastructure**:
+- V3.1: CI/CD pipelines (✅ Complete)
+- V3.2: Fresh data integration (Next)
+- V3.3: Model registry
+- V3.4: Deployment automation
 
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    GitHub Actions                            │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
-│  │   ci.yml   │  │ train.yml  │  │ deploy.yml │            │
-│  │ lint+test  │  │ train+eval │  │ stage+prod │            │
-│  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘            │
-└────────│───────────────│───────────────│────────────────────┘
-         │               │               │
-         ▼               ▼               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                        MLflow                                │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │  Experiments │  │Model Registry│  │  Artifacts   │      │
-│  │  (metrics)   │  │ (versions)   │  │  (models)    │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### GitHub Actions Workflows
-
-1. **`ci.yml`** - Runs on every Pull Request:
-   - Code linting (ruff)
-   - Unit tests (pytest)
-   - Integration tests
-   - Blocks merge if checks fail
-
-2. **`train.yml`** - Manual trigger or data update:
-   - Load and validate data
-   - Train model with MLflow tracking
-   - Evaluate against baseline
-   - Register model if improved
-
-3. **`deploy.yml`** - On model approval:
-   - Build Docker image
-   - Deploy to staging
-   - Run smoke tests
-   - Deploy to production (manual gate)
-
-### MLflow Structure
-
-```
-mlflow/
-├── mlruns/              # Experiment tracking database
-│   └── 0/               # Default experiment
-│       └── <run_id>/    # Each training run
-│           ├── metrics/ # MAE, R², RMSE
-│           ├── params/  # Hyperparameters
-│           └── artifacts/# Model files
-└── mlflow.db            # SQLite backend
-```
-
-### Key Concepts Explained
-
-**1. Experiment Tracking**
-Instead of: "I think we used learning_rate=0.05..."
-With MLflow: Every parameter, metric, and artifact is logged automatically.
-
-**2. Model Registry**
-Instead of: "model_final_v2_REAL_final.pkl"
-With MLflow: `models:/real-estate-predictor/Production` with full lineage.
-
-**3. CI/CD Pipelines**
-Instead of: "Did anyone run the tests?"
-With GitHub Actions: Tests run automatically, merge is blocked if they fail.
-
-### Success Criteria
-
-- [ ] All training runs logged to MLflow with metrics + artifacts
-- [ ] PR cannot merge without passing CI checks
-- [ ] Model training can be triggered via GitHub Actions
-- [ ] Model registry tracks Production vs Staging versions
-- [ ] README documents how to use the MLOps infrastructure
+See `docs/V3_Detailed_Roadmap.md` for details.
 
 ---
 
-**Document Version:** 2.0  
+**Document Version:** 2.1  
 **Last Updated:** 2025-12-08
