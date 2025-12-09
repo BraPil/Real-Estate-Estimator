@@ -56,3 +56,6 @@ Reference_Docs/King_County_Assessment_data_ALL/
 Reference_Docs/*.geojson
 references/King_County_Assessment_data_ALL/
 references/King_County_Parcels___parcel_area.geojson
+docs/
+archive/
+PRESENTATION_PREP.md
