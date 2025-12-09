@@ -36,7 +36,7 @@ from mlflow_config import setup_mlflow, MLFLOW_MODEL_NAME
 DATA_DIR = Path("data")
 MODEL_DIR = Path("model")
 DEMOGRAPHICS_PATH = DATA_DIR / "zipcode_demographics.csv"
-FRESH_DATA_PATH = DATA_DIR / "assessment_2020_plus_full.csv"
+FRESH_DATA_PATH = DATA_DIR / "assessment_2020_plus_v2.csv"  # V2 with improved neighbor features
 
 # V2.5 tuned hyperparameters (use as starting point)
 DEFAULT_PARAMS = {

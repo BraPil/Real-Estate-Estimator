@@ -196,10 +196,23 @@ def transform_to_model_format(df: pd.DataFrame) -> pd.DataFrame:
     result["view"] = calculate_view(df)
 
     # Fields we can't derive (set to reasonable defaults or null)
-    result["lat"] = np.nan  # Would need geocoding
-    result["long"] = np.nan  # Would need geocoding
-    result["sqft_living15"] = result["sqft_living"]  # Default to self
-    result["sqft_lot15"] = result["sqft_lot"]  # Default to self
+    result["lat"] = np.nan  # Would need GIS parcel data (separate dataset)
+    result["long"] = np.nan  # Would need GIS parcel data (separate dataset)
+    
+    # Neighbor features: use zipcode-level averages as proxy for "nearest 15 neighbors"
+    # This is more accurate than setting to self since zipcode captures neighborhood
+    print("  Calculating neighbor averages by zipcode...")
+    zipcode_stats = result.groupby("zipcode").agg({
+        "sqft_living": "mean",
+        "sqft_lot": "mean"
+    }).rename(columns={
+        "sqft_living": "zip_sqft_living_avg",
+        "sqft_lot": "zip_sqft_lot_avg"
+    })
+    result = result.merge(zipcode_stats, on="zipcode", how="left")
+    result["sqft_living15"] = result["zip_sqft_living_avg"].fillna(result["sqft_living"])
+    result["sqft_lot15"] = result["zip_sqft_lot_avg"].fillna(result["sqft_lot"])
+    result = result.drop(columns=["zip_sqft_living_avg", "zip_sqft_lot_avg"])
 
     # Add metadata
     result["id"] = df["Major"].astype(str) + df["Minor"].astype(str)
