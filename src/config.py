@@ -59,8 +59,8 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", description="Logging level")
 
     # Data vintage warning
-    data_vintage_start: int = 2014
-    data_vintage_end: int = 2015
+    data_vintage_start: int = 2020
+    data_vintage_end: int = 2024
 
     class Config:
         env_file = ".env"

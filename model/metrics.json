@@ -1,0 +1,34 @@
+{
+  "version": "v3.3",
+  "data_vintage": "2020-2024",
+  "training_date": "2025-12-09",
+  "model_type": "XGBRegressor (Pipeline)",
+  "training_samples": 143476,
+  "n_features": 47,
+  "metrics": {
+    "cv_mae": 115247,
+    "cv_r2": 0.868,
+    "cv_method": "GroupKFold (by parcel_id)",
+    "note": "Honest evaluation - no data leakage from repeat sales"
+  },
+  "hyperparameters": {
+    "n_estimators": 1500,
+    "max_depth": 8,
+    "learning_rate": 0.0285,
+    "subsample": 0.858,
+    "colsample_bytree": 0.614,
+    "reg_alpha": 0.0079,
+    "reg_lambda": 6.56
+  },
+  "data_filters": {
+    "distressed_filter": "bottom 5% per zipcode removed",
+    "price_cap": 3000000,
+    "date_range": "2020-01-01 to 2024-12-31"
+  },
+  "temporal_features": [
+    "sale_year",
+    "sale_month",
+    "sale_quarter",
+    "sale_dow"
+  ]
+}

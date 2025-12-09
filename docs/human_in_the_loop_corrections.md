@@ -559,6 +559,86 @@ V3.2 (Fresh Data Integration) highlighted the value of real data:
 
 ---
 
+## Correction #16: Questioning High R2 (Overfitting Detection)
+
+**Date:** 2025-12-09
+**Phase:** V3.3 - Optimization
+
+**What AI Did Wrong:**
+- Reported test R2 of 0.966 without questioning it
+- Presented inflated metric as a success
+
+**Human Intervention:**
+- User asked: "that 96.6 feels high, is the model overfitted?"
+- Prompted investigation into potential data leakage
+
+**Root Cause:**
+- AI focused on metric improvement without skepticism
+- Did not recognize that 96.6% R2 is unusually high for real estate prediction
+
+**Resolution:**
+- Investigated dataset: found 12.4% repeat sales (same property sold multiple times)
+- Random train/test split leaked information (same property in both sets)
+- Implemented GroupKFold CV to split by property ID
+- Honest R2 = 0.868 vs inflated R2 = 0.966
+
+**Lesson Learned:**
+- High metrics warrant skepticism, not celebration
+- Always consider data leakage in panel/time-series data
+- Entity-level splits (GroupKFold) prevent information leakage
+
+---
+
+## Correction #17: CI/CD Using Wrong Data Source
+
+**Date:** 2025-12-09
+**Phase:** V3.3 - Optimization
+
+**What AI Did Wrong:**
+- Updated training scripts to use fresh 2020+ data
+- Left `train_with_mlflow.py` pointing to old `kc_house_data.csv`
+- CI/CD workflows not updated for new data source
+
+**Human Intervention:**
+- User asked: "teach me about how our ci/cd github/mlflow MLOPS performed in 3.2 and 3.3"
+- Exposed gap between local development and CI/CD configuration
+
+**Root Cause:**
+- AI updated training scripts but forgot MLOps integration
+- Tunnel vision on model development, not full pipeline
+
+**Resolution:**
+- Added `--data-source` flag to `train_with_mlflow.py` (fresh/original)
+- Updated GitHub Actions workflows to support feature/* branches
+- Train workflow now defaults to fresh data
+
+**Lesson Learned:**
+- When data sources change, all pipeline components must update
+- CI/CD is part of the deliverable, not an afterthought
+- End-to-end testing catches integration gaps
+
+---
+
+## V3.3 Specific Insights
+
+V3.3 (Optimization) highlighted the importance of skepticism:
+
+1. **Metric Skepticism** - User's intuition caught overfitting AI missed (Correction #16)
+2. **Full Pipeline Thinking** - MLOps scripts must evolve with data sources (Correction #17)
+
+**Technical Learnings:**
+- Repeat property sales cause data leakage in random splits
+- GroupKFold CV provides honest evaluation for panel data
+- 12.4% repeat sales = significant leakage potential
+- R2 0.868 is honest and still excellent for real estate
+
+**Process Learnings:**
+- Question metrics that seem "too good"
+- CI/CD configuration is part of feature development
+- Human skepticism is a safety net for AI optimism
+
+---
+
 ## Value of Human Oversight
 
 These corrections demonstrate that:
@@ -568,8 +648,9 @@ These corrections demonstrate that:
 3. **Human intuition catches gaps** - User sensed something was wrong before AI recognized it
 4. **Collaboration produces better outcomes** - Neither AI nor human alone would have caught all issues
 5. **Domain experts provide critical data** - V3.2 showed humans know what external sources exist
+6. **Human skepticism catches inflated metrics** - V3.3 showed overfitting that AI celebrated
 
 ---
 
 **Log Maintained By:** AI Assistant
-**Last Updated:** 2025-12-09 (V3.2 Session End)
+**Last Updated:** 2025-12-09 (V3.3 Session End)
