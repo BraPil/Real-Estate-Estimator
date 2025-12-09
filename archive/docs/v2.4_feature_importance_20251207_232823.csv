@@ -1,0 +1,173 @@
+feature,importance,rank,model
+grade,0.3092552922024634,1,Random Forest
+sqft_living,0.2776130961594223,2,Random Forest
+per_bchlr,0.08307001256693311,3,Random Forest
+hous_val_amt,0.07033779748489186,4,Random Forest
+lat,0.042309248558403324,5,Random Forest
+waterfront,0.03059381289174873,6,Random Forest
+per_prfsnl,0.026087187845368065,7,Random Forest
+view,0.020873047882916995,8,Random Forest
+sqft_living15,0.01877407952132628,9,Random Forest
+long,0.01844097871618526,10,Random Forest
+sqft_above,0.017890041729075688,11,Random Forest
+yr_built,0.014289902100226478,12,Random Forest
+medn_incm_per_prsn_amt,0.013746750004584524,13,Random Forest
+sqft_lot,0.0115428388299697,14,Random Forest
+sqft_lot15,0.009130515588633639,15,Random Forest
+bathrooms,0.0068348113222760805,16,Random Forest
+sqft_basement,0.004465549962797056,17,Random Forest
+edctn_prfsnl_qty,0.002550319629738329,18,Random Forest
+medn_hshld_incm_amt,0.0025275792967776956,19,Random Forest
+condition,0.002403639309257446,20,Random Forest
+bedrooms,0.0018751639226861044,21,Random Forest
+edctn_9_12_qty,0.0016383376454088873,22,Random Forest
+yr_renovated,0.0013198018327986558,23,Random Forest
+floors,0.0012724881248578044,24,Random Forest
+edctn_assoc_dgre_qty,0.0011576663815212602,25,Random Forest
+edctn_high_schl_qty,0.001115046045164873,26,Random Forest
+edctn_less_than_9_qty,0.001102463380809012,27,Random Forest
+edctn_bchlr_dgre_qty,0.0010762660487976968,28,Random Forest
+edctn_some_clg_qty,0.0010478463968033923,29,Random Forest
+per_some_clg,0.0008303970705909586,30,Random Forest
+urbn_ppltn_qty,0.0008285023721485972,31,Random Forest
+ppltn_qty,0.0008236174690298918,32,Random Forest
+per_hsd,0.0007525688575757397,33,Random Forest
+per_9_to_12,0.0007391630445597306,34,Random Forest
+per_assoc,0.0006465149998671564,35,Random Forest
+per_less_than_9,0.00032042394528773233,36,Random Forest
+non_farm_qty,0.0003069631962945884,37,Random Forest
+per_urbn,0.0002305714295762283,38,Random Forest
+per_non_farm,0.00010546564962690409,39,Random Forest
+farm_ppltn_qty,5.72922041570388e-05,40,Random Forest
+per_farm,8.763381713925124e-06,41,Random Forest
+per_sbrbn,6.260767807211571e-06,42,Random Forest
+sbrbn_ppltn_qty,1.9142299207788247e-06,43,Random Forest
+grade,0.2000831812620163,1,XGBoost
+hous_val_amt,0.16049125790596008,2,XGBoost
+sqft_living,0.1137552261352539,3,XGBoost
+per_bchlr,0.11323170363903046,4,XGBoost
+per_prfsnl,0.0955912172794342,5,XGBoost
+waterfront,0.07279609888792038,6,XGBoost
+medn_incm_per_prsn_amt,0.02755030244588852,7,XGBoost
+view,0.024314597249031067,8,XGBoost
+sqft_above,0.016208892688155174,9,XGBoost
+lat,0.015075705014169216,10,XGBoost
+sqft_living15,0.015047001652419567,11,XGBoost
+long,0.012728751637041569,12,XGBoost
+bathrooms,0.011754726991057396,13,XGBoost
+edctn_prfsnl_qty,0.009917075745761395,14,XGBoost
+yr_built,0.007301488425582647,15,XGBoost
+sqft_lot,0.007280306424945593,16,XGBoost
+yr_renovated,0.0071312617510557175,17,XGBoost
+sqft_lot15,0.006793566979467869,18,XGBoost
+edctn_high_schl_qty,0.006213486194610596,19,XGBoost
+edctn_assoc_dgre_qty,0.005241784732788801,20,XGBoost
+non_farm_qty,0.004740305244922638,21,XGBoost
+ppltn_qty,0.004718293901532888,22,XGBoost
+medn_hshld_incm_amt,0.004611318465322256,23,XGBoost
+urbn_ppltn_qty,0.004524074960500002,24,XGBoost
+edctn_bchlr_dgre_qty,0.004511266481131315,25,XGBoost
+condition,0.004260738380253315,26,XGBoost
+edctn_less_than_9_qty,0.0040576765313744545,27,XGBoost
+per_9_to_12,0.003891028231009841,28,XGBoost
+sqft_basement,0.003889083629474044,29,XGBoost
+edctn_9_12_qty,0.0035930611193180084,30,XGBoost
+per_hsd,0.00356186437420547,31,XGBoost
+edctn_some_clg_qty,0.003521345555782318,32,XGBoost
+per_farm,0.0034073973074555397,33,XGBoost
+per_urbn,0.003153575584292412,34,XGBoost
+farm_ppltn_qty,0.003077979199588299,35,XGBoost
+per_some_clg,0.0029093013145029545,36,XGBoost
+per_less_than_9,0.0023600482381880283,37,XGBoost
+floors,0.0020696530118584633,38,XGBoost
+bedrooms,0.0017701360629871488,39,XGBoost
+per_assoc,0.0011822079541161656,40,XGBoost
+per_non_farm,0.0009162189089693129,41,XGBoost
+sbrbn_ppltn_qty,0.0007658383692614734,42,XGBoost
+per_sbrbn,0.0,43,XGBoost
+lat,265.0,1,LightGBM
+sqft_living,255.0,2,LightGBM
+sqft_above,245.0,3,LightGBM
+long,224.0,4,LightGBM
+yr_built,206.0,5,LightGBM
+sqft_living15,189.0,6,LightGBM
+sqft_lot,183.0,7,LightGBM
+sqft_basement,169.0,8,LightGBM
+grade,130.0,9,LightGBM
+bathrooms,120.0,10,LightGBM
+view,101.0,11,LightGBM
+sqft_lot15,88.0,12,LightGBM
+hous_val_amt,78.0,13,LightGBM
+per_bchlr,64.0,14,LightGBM
+condition,64.0,15,LightGBM
+medn_hshld_incm_amt,63.0,16,LightGBM
+medn_incm_per_prsn_amt,60.0,17,LightGBM
+waterfront,46.0,18,LightGBM
+yr_renovated,41.0,19,LightGBM
+edctn_9_12_qty,37.0,20,LightGBM
+edctn_less_than_9_qty,35.0,21,LightGBM
+edctn_prfsnl_qty,35.0,22,LightGBM
+per_prfsnl,32.0,23,LightGBM
+floors,30.0,24,LightGBM
+bedrooms,29.0,25,LightGBM
+edctn_bchlr_dgre_qty,27.0,26,LightGBM
+ppltn_qty,27.0,27,LightGBM
+edctn_high_schl_qty,23.0,28,LightGBM
+per_some_clg,23.0,29,LightGBM
+per_hsd,15.0,30,LightGBM
+edctn_some_clg_qty,10.0,31,LightGBM
+per_assoc,10.0,32,LightGBM
+edctn_assoc_dgre_qty,8.0,33,LightGBM
+non_farm_qty,7.0,34,LightGBM
+per_9_to_12,6.0,35,LightGBM
+urbn_ppltn_qty,5.0,36,LightGBM
+per_less_than_9,5.0,37,LightGBM
+per_farm,4.0,38,LightGBM
+farm_ppltn_qty,1.0,39,LightGBM
+per_urbn,1.0,40,LightGBM
+sbrbn_ppltn_qty,0.0,41,LightGBM
+per_sbrbn,0.0,42,LightGBM
+per_non_farm,0.0,43,LightGBM
+ppltn_qty,673284.6335384247,1,Ridge Regression
+waterfront,623379.9862986447,2,Ridge Regression
+per_prfsnl,281947.51813317963,3,Ridge Regression
+urbn_ppltn_qty,243803.17097707183,4,Ridge Regression
+edctn_high_schl_qty,208191.51540987784,5,Ridge Regression
+edctn_some_clg_qty,197380.9761685918,6,Ridge Regression
+per_hsd,182540.22943382265,7,Ridge Regression
+medn_incm_per_prsn_amt,179156.53823766543,8,Ridge Regression
+edctn_prfsnl_qty,168832.2131520052,9,Ridge Regression
+medn_hshld_incm_amt,115638.3555447106,10,Ridge Regression
+sqft_above,110141.10384124296,11,Ridge Regression
+sqft_living,107860.11432477763,12,Ridge Regression
+hous_val_amt,70853.54538740682,13,Ridge Regression
+per_9_to_12,65950.43239421623,14,Ridge Regression
+grade,56944.04230286991,15,Ridge Regression
+edctn_assoc_dgre_qty,55558.685004965526,16,Ridge Regression
+view,54074.4670377958,17,Ridge Regression
+per_some_clg,50033.63027235922,18,Ridge Regression
+per_farm,46702.344056987866,19,Ridge Regression
+floors,43742.76340128298,20,Ridge Regression
+yr_built,40524.46577832648,21,Ridge Regression
+edctn_9_12_qty,37764.75636549918,22,Ridge Regression
+per_sbrbn,30775.005845705542,23,Ridge Regression
+edctn_less_than_9_qty,29600.662604934456,24,Ridge Regression
+bathrooms,29498.091415307485,25,Ridge Regression
+per_urbn,28169.322268377873,26,Ridge Regression
+bedrooms,27529.497356532687,27,Ridge Regression
+per_non_farm,25486.34443945807,28,Ridge Regression
+condition,23730.908505750318,29,Ridge Regression
+edctn_bchlr_dgre_qty,23381.9628033842,30,Ridge Regression
+per_bchlr,20284.769874393925,31,Ridge Regression
+sqft_basement,17424.76919664373,32,Ridge Regression
+lat,12331.10831917748,33,Ridge Regression
+non_farm_qty,8228.813720611035,34,Ridge Regression
+sqft_living15,6900.841171449557,35,Ridge Regression
+per_less_than_9,3528.2341251656503,36,Ridge Regression
+per_assoc,2659.327428827382,37,Ridge Regression
+sqft_lot,1248.6046616702001,38,Ridge Regression
+sqft_lot15,505.274437817142,39,Ridge Regression
+long,416.52418953077915,40,Ridge Regression
+farm_ppltn_qty,57.218551310387234,41,Ridge Regression
+yr_renovated,17.78362913773146,42,Ridge Regression
+sbrbn_ppltn_qty,2.8251476833398104,43,Ridge Regression

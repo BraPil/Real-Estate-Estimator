@@ -54,3 +54,5 @@ Reference_Docs/REFERENCE_DOCUMENTATION_INDEX.md
 # Large local data files (King County assessment data - too large for git)
 Reference_Docs/King_County_Assessment_data_ALL/
 Reference_Docs/*.geojson
+references/King_County_Assessment_data_ALL/
+references/King_County_Parcels___parcel_area.geojson

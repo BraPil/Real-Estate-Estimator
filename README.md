@@ -73,7 +73,7 @@ We transitioned from static 2015 data to a dynamic pipeline using 2020-2024 asse
     - Demographic enrichment (Census data)
     - GIS coordinate mapping
 3.  **Training:**
-    - `src/train_fresh_data.py`: Main training logic.
+    - `src/train_with_mlflow.py`: Main training logic (MLflow integrated).
     - `src/tune_v33.py`: Optuna optimization loop.
 4.  **Evaluation:**
     - `src/evaluate_fresh.py`: Generates metrics.json and plots.
@@ -88,15 +88,18 @@ We transitioned from static 2015 data to a dynamic pipeline using 2020-2024 asse
 
 ```
 ├── .github/workflows/    # CI/CD Pipelines (Test & Train)
+├── archive/              # Deprecated scripts and logs
 ├── docs/                 # Comprehensive Documentation
-│   ├── V3.3_Completion_Summary.md
-│   ├── V2.5_Robust_Evaluation_Summary.md
+│   ├── manuals/          # API & Architecture Guides
+│   ├── reports/          # Version Completion Summaries
 │   └── human_in_the_loop_corrections.md
+├── references/           # External Reference Docs
 ├── src/
 │   ├── api/              # FastAPI Endpoints
 │   ├── data/             # Data Transformation Scripts
 │   ├── services/         # Business Logic
-│   ├── train_fresh_data.py
+│   ├── evaluate_fresh.py
+│   ├── train_with_mlflow.py
 │   └── tune_v33.py
 ├── tests/                # Pytest Suite
 └── model/                # Serialized Model & Metrics
