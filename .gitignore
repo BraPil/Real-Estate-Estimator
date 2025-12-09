@@ -20,8 +20,15 @@ Thumbs.db
 .vscode/
 .idea/
 
-# MLflow runs (model/ is tracked - only 1.8MB)
+# MLflow (databases change frequently, artifacts are large)
 mlruns/
+mlflow.db
+mlflow/mlflow.db
+mlflow/artifacts/
+
+# Model directory - tracked (only 1.8MB pkl)
+# But evaluation_report.json changes frequently
+model/evaluation_report.json
 
 # Local data copies (if you create a top-level data/ for convenience)
 /data/
@@ -31,6 +38,9 @@ logs/
 Generated_Docs/
 SESSION_*.md
 master_protocol_documentation_sub_protocol.md
+
+# Serena MCP cache
+.serena/
 
 # Downloaded reference docs (we keep only phData challenge materials)
 Reference_Docs/FastAPI_Documentation/
@@ -43,3 +53,4 @@ Reference_Docs/REFERENCE_DOCUMENTATION_INDEX.md
 
 # Large local data files (King County assessment data - too large for git)
 Reference_Docs/King_County_Assessment_data_ALL/
+Reference_Docs/*.geojson

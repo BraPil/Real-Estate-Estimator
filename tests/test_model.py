@@ -46,7 +46,7 @@ def sample_input():
     A realistic sample input for testing.
 
     Feature names must match those in model/model_features.json exactly.
-    The model expects 43 features (17 home + 26 demographic).
+    The model expects 47 features (17 home + 4 temporal + 26 demographic).
     """
     return pd.DataFrame(
         [
@@ -69,6 +69,11 @@ def sample_input():
                 "long": -122.2,
                 "sqft_living15": 1800,
                 "sqft_lot15": 5000,
+                # 4 Temporal features (V3.3)
+                "sale_year": 2024,
+                "sale_month": 6,
+                "sale_quarter": 2,
+                "sale_dow": 2,
                 # 26 Demographic features (names from zipcode_demographics.csv)
                 "ppltn_qty": 50000,
                 "urbn_ppltn_qty": 40000,

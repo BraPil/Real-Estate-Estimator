@@ -34,20 +34,28 @@ on:
         required: false
         default: ''
         type: string
+      data_source:
+        description: 'Data source: original (2014-15) or fresh (2020+)'
+        required: false
+        default: 'fresh'
+        type: choice
+        options:
+          - fresh
+          - original
       n_estimators:
         description: 'Number of trees (XGBoost)'
         required: false
-        default: '500'
+        default: '355'
         type: string
       max_depth:
         description: 'Max tree depth'
         required: false
-        default: '6'
+        default: '10'
         type: string
       learning_rate:
         description: 'Learning rate'
         required: false
-        default: '0.05'
+        default: '0.1134'
         type: string
       register_model:
         description: 'Register model if improved?'
@@ -108,9 +116,10 @@ jobs:
         run: |
           python src/train_with_mlflow.py \
             --run-name "${{ steps.run_name.outputs.name }}" \
-            --n-estimators ${{ inputs.n_estimators || '500' }} \
-            --max-depth ${{ inputs.max_depth || '6' }} \
-            --learning-rate ${{ inputs.learning_rate || '0.05' }} \
+            --data-source ${{ inputs.data_source || 'fresh' }} \
+            --n-estimators ${{ inputs.n_estimators || '355' }} \
+            --max-depth ${{ inputs.max_depth || '10' }} \
+            --learning-rate ${{ inputs.learning_rate || '0.1134' }} \
             ${{ inputs.register_model && '--register' || '' }}
       
       # Upload MLflow data as artifact
@@ -129,10 +138,13 @@ jobs:
           echo "**Run Name:** ${{ steps.run_name.outputs.name }}" >> training_report.md
           echo "**Date:** $(date -Iseconds)" >> training_report.md
           echo "" >> training_report.md
+          echo "## Data Source" >> training_report.md
+          echo "- Source: ${{ inputs.data_source || 'fresh' }}" >> training_report.md
+          echo "" >> training_report.md
           echo "## Parameters" >> training_report.md
-          echo "- n_estimators: ${{ inputs.n_estimators || '500' }}" >> training_report.md
-          echo "- max_depth: ${{ inputs.max_depth || '6' }}" >> training_report.md
-          echo "- learning_rate: ${{ inputs.learning_rate || '0.05' }}" >> training_report.md
+          echo "- n_estimators: ${{ inputs.n_estimators || '355' }}" >> training_report.md
+          echo "- max_depth: ${{ inputs.max_depth || '10' }}" >> training_report.md
+          echo "- learning_rate: ${{ inputs.learning_rate || '0.1134' }}" >> training_report.md
           echo "" >> training_report.md
           echo "## Artifacts" >> training_report.md
           echo "MLflow tracking data uploaded as workflow artifact." >> training_report.md

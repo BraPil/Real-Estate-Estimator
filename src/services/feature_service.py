@@ -14,9 +14,14 @@ for fast lookup during predictions.
 V2.1 Update:
     Added default values for the 10 new home features used in V2.1
     These are used when the minimal endpoint is called (which only provides 7 features)
+
+V3.3 Update:
+    Added temporal features (sale_year, sale_month, sale_quarter, sale_dow)
+    These are computed from the current date at prediction time.
 """
 
 import logging
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -47,6 +52,19 @@ V21_DEFAULT_FEATURES = {
     # Neighborhood context (use median values)
     "sqft_living15": 1986,  # Median neighbor living sqft
     "sqft_lot15": 7620,  # Median neighbor lot sqft
+}
+
+# ==============================================================================
+# V3.3 TEMPORAL FEATURE DEFAULTS
+# ==============================================================================
+# Default temporal features for predictions (use current date at prediction time)
+# These will be computed dynamically in enrich functions
+
+V33_TEMPORAL_DEFAULTS = {
+    "sale_year": 2024,  # Updated at runtime
+    "sale_month": 6,  # Updated at runtime
+    "sale_quarter": 2,  # Updated at runtime
+    "sale_dow": 2,  # Wednesday (middle of week)
 }
 
 
@@ -158,6 +176,23 @@ class FeatureService:
         """
         return self.average_demographics.copy()
 
+    def _get_temporal_features(self) -> dict[str, int]:
+        """Get temporal features based on current date.
+
+        V3.3: The model was trained with sale date features.
+        For predictions, we use the current date.
+
+        Returns:
+            Dictionary with sale_year, sale_month, sale_quarter, sale_dow
+        """
+        now = datetime.now()
+        return {
+            "sale_year": now.year,
+            "sale_month": now.month,
+            "sale_quarter": (now.month - 1) // 3 + 1,
+            "sale_dow": now.weekday(),  # 0=Monday, 6=Sunday
+        }
+
     def enrich_features(self, home_features: dict[str, float], zipcode: str) -> dict[str, float]:
         """Enrich home features with demographics from zipcode.
 
@@ -166,15 +201,16 @@ class FeatureService:
             zipcode: 5-digit zipcode for demographics lookup
 
         Returns:
-            Dictionary with home features plus demographic features
+            Dictionary with home features plus demographic and temporal features
 
         Raises:
             ValueError: If zipcode is invalid
         """
         demographics = self.get_demographics(zipcode)
+        temporal = self._get_temporal_features()
 
-        # Merge home features with demographics
-        enriched = {**home_features, **demographics}
+        # Merge home features with demographics and temporal
+        enriched = {**home_features, **demographics, **temporal}
 
         return enriched
 
@@ -187,17 +223,23 @@ class FeatureService:
         (waterfront, view, condition, grade, yr_built, yr_renovated, lat, long,
         sqft_living15, sqft_lot15) if they are not provided in home_features.
 
+        V3.3 Update: Also adds temporal features based on current date.
+
         Args:
             home_features: Dictionary of home-level features (may be 7 or 17)
 
         Returns:
-            Dictionary with all 17 home features plus 26 demographic features
+            Dictionary with all 17 home features plus 4 temporal plus 26 demographic features
         """
         # Start with V2.1 default features
         enriched = V21_DEFAULT_FEATURES.copy()
 
         # Override with any provided home features
         enriched.update(home_features)
+
+        # Add temporal features (V3.3)
+        temporal = self._get_temporal_features()
+        enriched.update(temporal)
 
         # Add average demographics
         demographics = self.get_average_demographics()
