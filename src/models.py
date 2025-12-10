@@ -434,6 +434,118 @@ class BatchPredictionRequest(BaseModel):
 # ==============================================================================
 
 
+class AddressPredictionRequest(BaseModel):
+    """Prediction request using just an address (V4 feature).
+
+    This request type allows users to get a price prediction by providing
+    only an address. The system will:
+    1. Geocode the address to get lat/long
+    2. Find the nearest property in King County records
+    3. Auto-populate all property features
+    4. Make a prediction using the standard model
+
+    This is the most user-friendly way to get a prediction.
+    """
+
+    address: str = Field(
+        ...,
+        min_length=10,
+        max_length=200,
+        description="Full street address including city, state, and zip",
+        examples=["123 Main St, Seattle, WA 98103"],
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {"address": "400 Broad St, Seattle, WA 98109"},
+                {"address": "123 Main St, Bellevue, WA 98004"},
+            ]
+        }
+    }
+
+
+class AddressPredictionResponse(BaseModel):
+    """Response for address-based prediction (V4 feature).
+
+    Includes the standard prediction plus the auto-populated property details.
+    """
+
+    predicted_price: float = Field(
+        ..., ge=0, description="Predicted home price in USD", examples=[850000.0]
+    )
+    prediction_id: str = Field(
+        ...,
+        description="Unique identifier for this prediction",
+        examples=["pred-20251210-123456-abc123"],
+    )
+    model_version: str = Field(
+        ..., description="Version of the model used for prediction", examples=["v3.3"]
+    )
+    
+    # Property details that were auto-populated
+    property_details: dict = Field(
+        ...,
+        description="Property details retrieved from King County records",
+        examples=[{
+            "bedrooms": 3,
+            "bathrooms": 2.5,
+            "sqft_living": 2000,
+            "sqft_lot": 5000,
+            "yr_built": 2010,
+            "grade": 8,
+        }],
+    )
+    
+    # Address lookup metadata
+    geocoded_address: str = Field(
+        ...,
+        description="Full address as resolved by geocoder",
+        examples=["400 Broad St, Seattle, King County, Washington, 98109, United States"],
+    )
+    match_confidence: str = Field(
+        ...,
+        description="Confidence in property match (high/medium/low)",
+        examples=["high"],
+    )
+    distance_meters: float = Field(
+        ...,
+        description="Distance from geocoded location to matched property",
+        examples=[25.5],
+    )
+    
+    confidence_note: str = Field(
+        default="Prediction based on King County records. Property details were auto-populated from assessor data.",
+        description="Confidence note about the prediction",
+    )
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="Timestamp of the prediction"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "predicted_price": 850000.0,
+                    "prediction_id": "pred-20251210-123456-abc123",
+                    "model_version": "v3.3",
+                    "property_details": {
+                        "bedrooms": 3,
+                        "bathrooms": 2.5,
+                        "sqft_living": 2000,
+                        "grade": 8,
+                    },
+                    "geocoded_address": "400 Broad St, Seattle, WA 98109",
+                    "match_confidence": "high",
+                    "distance_meters": 25.5,
+                    "confidence_note": "Prediction based on King County records.",
+                    "timestamp": "2025-12-10T12:00:00Z",
+                }
+            ]
+        }
+    }
+
+
 class PredictionResponse(BaseModel):
     """Response containing the predicted price and metadata."""
 
