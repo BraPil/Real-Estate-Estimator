@@ -32,6 +32,8 @@ model/evaluation_report.json
 
 # Local data copies (if you create a top-level data/ for convenience)
 /data/
+# But keep property_lookup.csv for V4.1 address-based predictions
+!/data/property_lookup.csv
 
 # Logs and exploratory/generated docs (internal, not needed for phData repo)
 logs/
