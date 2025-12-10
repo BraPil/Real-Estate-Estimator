@@ -147,6 +147,16 @@ COMPARISON SUMMARY
 
 **Solution:** Systematic model comparison (KNN, Random Forest, LightGBM, XGBoost) with proper cross-validation and hyperparameter tuning via RandomizedSearchCV.
 
+**Key Discovery:** The original KNN algorithm was fundamentally limited. Our head-to-head comparison revealed XGBoost reduced prediction error by 38% - a finding that justified the complete algorithm change from V1 to V2.
+
+**Tuning Methodology:**
+| Technique | Details |
+|-----------|---------|
+| Cross-Validation | 5-fold CV on all model comparisons |
+| Hyperparameter Search | RandomizedSearchCV (50 iterations) |
+| Evaluation Metric | Negative MAE (to find minimum error) |
+| Parameters Tuned | 8 XGBoost params (n_estimators, max_depth, learning_rate, subsample, colsample_bytree, min_child_weight, gamma, reg_alpha) |
+
 | Metric | Value |
 |--------|-------|
 | Model | XGBoost (RandomizedSearchCV tuned) |
@@ -156,7 +166,8 @@ COMPARISON SUMMARY
 | Data | 2014-2015 (21,613 samples) |
 
 **Key Improvements:**
-- 38% reduction in MAE vs V1
+
+- 38% reduction in MAE vs V1 (KNN to XGBoost)
 - Expanded to 17 home features (added `yr_renovated`, `grade`, `condition`, etc.)
 - Bootstrap confidence intervals for uncertainty quantification
 - Residual analysis to understand error patterns
@@ -169,15 +180,28 @@ COMPARISON SUMMARY
 
 **Solution:** Complete data pipeline modernization with fresh 2020-2024 King County Assessment data, plus rigorous evaluation to catch data leakage.
 
+**Tuning Methodology (Upgraded from V2.5):**
+| Technique | Details |
+|-----------|---------|
+| Cross-Validation | 5-fold GroupKFold (grouped by parcel to prevent leakage) |
+| Hyperparameter Search | Optuna Bayesian optimization (30 trials) |
+| Sampler | TPE (Tree-structured Parzen Estimator) |
+| Parameters Tuned | 9 XGBoost params including regularization (reg_alpha, reg_lambda) |
+| Best Learning Rate | 0.113 (discovered via log-scale search) |
+| Best Max Depth | 10 (deeper than V2.5's 7) |
+
 | Metric | Value |
 |--------|-------|
 | Model | XGBoost (Optuna Bayesian optimization) |
-| CV R-squared | 0.868 |
-| CV MAE | $115,247 |
+| CV R-squared | 0.877 |
+| CV MAE | $115,344 |
+| Test MAE | $112,955 |
+| Test MAPE | 11.4% |
 | Features | 47 (17 home + 26 demographic + 4 temporal) |
 | Data | 2020-2024 (143,476 samples) |
 
 **Key Innovations:**
+
 - **Fresh Data Pipeline:** Ingested 143k+ real transaction records from King County Assessor
 - **Honest Evaluation:** GroupKFold cross-validation prevents leakage from repeat sales
 - **Temporal Features:** `sale_year`, `sale_month`, `sale_quarter`, `sale_dow`
