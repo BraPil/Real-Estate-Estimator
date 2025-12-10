@@ -237,21 +237,35 @@ PRICE PER SQUARE FOOT
 
 ### Step 4: Try Your Own Properties
 
+Edit `demo/compare_versions.py` and modify the `SAMPLE_PROPERTY` dictionary to test any property:
+
+```python
+SAMPLE_PROPERTY = {
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "sqft_living": 2500,
+    "sqft_lot": 7500,
+    "floors": 2,
+    "waterfront": 0,
+    "view": 0,
+    "condition": 3,
+    "grade": 8,
+    "sqft_above": 2000,
+    "sqft_basement": 500,
+    "yr_built": 2000,
+    "yr_renovated": 0,
+    "zipcode": "98115",
+    "lat": 47.6,
+    "long": -122.3,
+    "sqft_living15": 2400,
+    "sqft_lot15": 7200
+}
+```
+
+Then run the comparison to see all 3 versions side-by-side:
+
 ```bash
-# V1 MVP
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"bedrooms": 4, "bathrooms": 3, "sqft_living": 2500, "zipcode": "98115"}'
-
-# V2.5 Optimized
-curl -X POST http://localhost:8001/api/v1/predict \
-  -H "Content-Type: application/json" \
-  -d '{"bedrooms": 4, "bathrooms": 3, "sqft_living": 2500, "zipcode": "98115"}'
-
-# V3.3 Production
-curl -X POST http://localhost:8002/api/v1/predict \
-  -H "Content-Type: application/json" \
-  -d '{"bedrooms": 4, "bathrooms": 3, "sqft_living": 2500, "zipcode": "98115"}'
+python3 compare_versions.py
 ```
 
 ### Step 5: Cleanup
