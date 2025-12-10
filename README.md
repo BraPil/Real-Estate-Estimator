@@ -6,6 +6,27 @@
 
 ---
 
+## Quick Start (5 minutes)
+
+```bash
+# Clone
+git clone https://github.com/BraPil/Real-Estate-Estimator.git
+cd Real-Estate-Estimator
+
+# Start all 3 model versions
+docker compose -f demo/docker-compose.demo.yml up -d
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Look up any King County address!
+python scripts/compare_by_address.py "4502 S Willow St" Seattle 98118
+```
+
+**That's it!** You'll see predictions from all 3 model versions with property details pulled from official King County records.
+
+---
+
 ## The Story: Three Versions, One Journey
 
 ### V1: The MVP (Emergency Stabilization)
@@ -273,6 +294,71 @@ python3 compare_versions.py
 ```bash
 docker compose -f docker-compose.demo.yml down
 ```
+
+---
+
+## V4.1 Feature: Address-Based Lookup (Optional)
+
+**New!** Look up any King County property by street address and get instant price comparisons from all three models.
+
+### How It Works
+
+1. **Geocode** the address using King County's official geocoder
+2. **Look up** property details (bedrooms, bathrooms, sqft, grade, etc.) from King County Assessor records
+3. **Call** all three model versions with the real property data
+4. **Compare** predictions with neighborhood context
+
+### Setup
+
+The King County Assessor data is included in the repo (44MB compressed). It auto-decompresses on first use.
+
+```bash
+# Make sure Docker containers are running
+docker compose -f demo/docker-compose.demo.yml up -d
+
+# Look up any King County address
+python scripts/compare_by_address.py "1523 15th Ave S" Seattle 98144
+python scripts/compare_by_address.py "119 NW 41st St" Seattle 98107
+
+# Interactive mode
+python scripts/compare_by_address.py --interactive
+```
+
+### Example Output
+
+```
+============================================================
+       Analyzing: 1523 15th Ave S, Seattle, WA 98144        
+============================================================
+
+Looking up property: 1523 15th Ave S, Seattle, WA 98144
+Found property: PIN 8850000080
+
+--- Property Details ---
+  Address: 1523 15th Ave S, Seattle, WA 98144
+  Bedrooms:    2
+  Bathrooms:   1.0
+  Sqft Living: 1,150
+  Sqft Lot:    3,000
+  Grade:       7
+  Year Built:  1903
+  Zipcode:     98144
+
+--- Model Predictions Comparison ---
+  Model           Predicted Price   Data Vintage
+  ------------ ------------------ ---------------
+  V1 MVP      $     414,600.00       2014-2015
+  V2.5        $     337,363.28       2014-2015
+  V3.3        $     628,040.38       2020-2024  <-- Recommended
+
+--- Neighborhood Context ---
+  Zipcode: 98144
+  Area: Beacon Hill/Mt Baker - Light rail, diverse, views
+```
+
+### Data Source
+
+Property data comes from the [King County Assessor's Office](https://info.kingcounty.gov/assessor/DataDownload/default.aspx) - the same authoritative source used by Zillow, Redfin, and Realtor.com.
 
 ---
 

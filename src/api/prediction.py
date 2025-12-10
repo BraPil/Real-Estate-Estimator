@@ -7,6 +7,7 @@ Endpoints:
     POST /predict-minimal     - Prediction using only 7 home features (BONUS)
     POST /predict-full        - Prediction using all 17 home features (V2.1.1 Experiment)
     POST /predict-adaptive    - Adaptive tier-based routing (V2.1.2 Experiment)
+    POST /predict-by-address  - Prediction from address only (V4 Feature)
 
 All endpoints include data vintage warnings and metadata in responses.
 
@@ -14,6 +15,12 @@ V2.1.2 Discovery:
     Empirical analysis showed that /predict-minimal is more accurate for homes
     under $400K, while /predict-full is better for homes over $400K. The
     /predict-adaptive endpoint implements this insight.
+
+V4 Feature:
+    The /predict-by-address endpoint allows users to get predictions by
+    providing only a street address. The system geocodes the address,
+    finds the nearest property in King County records, auto-populates
+    all property features, and returns a prediction.
 """
 
 import logging
@@ -24,6 +31,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.config import Settings, get_settings
 from src.models import (
+    AddressPredictionRequest,
+    AddressPredictionResponse,
     ErrorResponse,
     HealthResponse,
     PredictionRequest,
@@ -463,5 +472,189 @@ async def predict_adaptive(
             detail={
                 "error": "PredictionError",
                 "message": "An unexpected error occurred during prediction.",
+            },
+        )
+
+
+# ==============================================================================
+# V4 ADDRESS-BASED PREDICTION
+# ==============================================================================
+
+
+@router.post(
+    "/predict-by-address",
+    response_model=AddressPredictionResponse,
+    responses={
+        200: {"description": "Successful prediction from address"},
+        400: {"model": ErrorResponse, "description": "Invalid address"},
+        404: {"model": ErrorResponse, "description": "Property not found"},
+        500: {"model": ErrorResponse, "description": "Internal server error"},
+    },
+    summary="Estimate Home Price by Location (V4.1 Feature)",
+    description="""
+    **V4.1 Feature: Location-Based Price Estimation**
+
+    Get a price estimate by providing a street address. The system will:
+    1. Geocode the address using King County's official geocoder to get the parcel ID (PIN)
+    2. Look up the **exact property** in King County Assessor records (531K+ residential buildings)
+    3. Get the actual property's features (bedrooms, bathrooms, sqft, grade, etc.)
+    4. Return a prediction based on the real property data
+
+    **Uses authoritative King County Assessor data - same source as eRealProperty.**
+    
+    Use cases:
+    - "What's my home worth?" - Get estimate for your actual property
+    - "What would this property sell for?" - Evaluate any King County address
+
+    **Requirements:**
+    - Address must be in King County, WA
+    - Must be a residential property in the Assessor database
+    - Commercial buildings and vacant lots will not match
+    """,
+)
+async def predict_by_address(
+    request: AddressPredictionRequest,
+    settings: Settings = Depends(get_settings),
+    feature_service: FeatureService = Depends(get_feature_service),
+    model_service: ModelService = Depends(get_model_service),
+) -> AddressPredictionResponse:
+    """Predict home price from just an address.
+
+    Args:
+        request: AddressPredictionRequest with address string
+        settings: Application settings
+        feature_service: Feature engineering service
+        model_service: Model prediction service
+
+    Returns:
+        AddressPredictionResponse with prediction and auto-populated property details
+    """
+    # Use V2 address service (CSV-based, no scraping)
+    from src.services.address_service_v2 import get_address_service_v2
+
+    prediction_id = generate_prediction_id()
+    logger.info("Address prediction request received. ID: %s, Address: %s", 
+                prediction_id, request.address)
+
+    try:
+        # STEP 1: Lookup address and get property data
+        address_service = get_address_service_v2()
+        
+        if not address_service.is_loaded:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail={
+                    "error": "ServiceUnavailable",
+                    "message": "Property lookup database not loaded. Address-based predictions are temporarily unavailable.",
+                },
+            )
+
+        property_data = address_service.lookup_address(request.address)
+        
+        if property_data is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "error": "PropertyNotFound",
+                    "message": f"Could not find a property matching address: {request.address}. "
+                               "Ensure the address is in King County, WA.",
+                },
+            )
+
+        # STEP 2: Extract property features for prediction
+        home_features = {
+            "bedrooms": property_data["bedrooms"],
+            "bathrooms": property_data["bathrooms"],
+            "sqft_living": property_data["sqft_living"],
+            "sqft_lot": property_data["sqft_lot"],
+            "floors": property_data["floors"],
+            "waterfront": property_data["waterfront"],
+            "view": property_data["view"],
+            "condition": property_data["condition"],
+            "grade": property_data["grade"],
+            "sqft_above": property_data["sqft_above"],
+            "sqft_basement": property_data["sqft_basement"],
+            "yr_built": property_data["yr_built"],
+            "yr_renovated": property_data["yr_renovated"],
+            "lat": property_data["lat"],
+            "long": property_data["long"],
+            "sqft_living15": property_data["sqft_living15"],
+            "sqft_lot15": property_data["sqft_lot15"],
+        }
+
+        # STEP 3: Enrich with demographics using zipcode
+        zipcode = property_data["zipcode"]
+        enriched_features = feature_service.enrich_features(home_features, zipcode)
+
+        # STEP 4: Make prediction
+        predicted_price = model_service.predict_single(enriched_features)
+
+        # STEP 5: Prepare property details for response (user-friendly subset)
+        property_details = {
+            "bedrooms": property_data["bedrooms"],
+            "bathrooms": property_data["bathrooms"],
+            "sqft_living": property_data["sqft_living"],
+            "sqft_lot": property_data["sqft_lot"],
+            "floors": property_data["floors"],
+            "yr_built": property_data["yr_built"],
+            "yr_renovated": property_data["yr_renovated"] if property_data["yr_renovated"] > 0 else None,
+            "grade": property_data["grade"],
+            "condition": property_data["condition"],
+            "waterfront": bool(property_data["waterfront"]),
+            "view": property_data["view"],
+            "zipcode": zipcode,
+        }
+
+        logger.info(
+            "Address prediction completed. ID: %s, Address: %s, Price: $%.2f",
+            prediction_id,
+            request.address,
+            predicted_price,
+        )
+
+        # Determine confidence note based on data source
+        data_source = property_data.get("_data_source", "")
+        if "EXTR_ResBldg" in data_source or "Assessor" in data_source:
+            confidence_note = (
+                f"Based on exact property data from King County Assessor records. "
+                f"PIN: {property_data.get('_pin', 'N/A')}. "
+                f"Geocode match score: {property_data.get('_geocode_score', 0):.0f}%."
+            )
+            match_confidence = "exact"
+        else:
+            confidence_note = (
+                f"Based on nearest property in King County records "
+                f"({property_data.get('_distance_km', 0)*1000:.0f}m away). "
+                f"This is a neighborhood estimate."
+            )
+            match_confidence = property_data.get("_match_confidence", "unknown")
+
+        return AddressPredictionResponse(
+            predicted_price=round(predicted_price, 2),
+            prediction_id=prediction_id,
+            model_version=model_service.model_version,
+            property_details=property_details,
+            geocoded_address=property_data.get("_matched_address", request.address),
+            match_confidence=match_confidence,
+            distance_meters=0.0,  # Exact match, no distance
+            confidence_note=confidence_note,
+            timestamp=datetime.utcnow(),
+        )
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error("Validation error in address prediction: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "ValidationError", "message": str(e)},
+        )
+    except Exception as e:
+        logger.error("Unexpected error in address prediction: %s", str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "PredictionError",
+                "message": "An unexpected error occurred during address-based prediction.",
             },
         )

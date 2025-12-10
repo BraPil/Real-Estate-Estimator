@@ -32,6 +32,13 @@ model/evaluation_report.json
 
 # Local data copies (if you create a top-level data/ for convenience)
 /data/
+# But keep King County compressed data (44MB total, needed for address lookup)
+!/data/king_county/
+!/data/king_county/*.gz
+# Ignore the decompressed CSVs (generated from .gz files on first use)
+/data/king_county/*.csv
+# Keep property_lookup.csv for V4.1 address-based predictions
+!/data/property_lookup.csv
 
 # Logs and exploratory/generated docs (internal, not needed for phData repo)
 logs/
