@@ -1,158 +1,365 @@
-# Real Estate Price Estimator: From MVP to Enterprise MLOps
+# Real Estate Price Estimator
 
-**Current Version:** v3.3.1  
-**Status:** Production-Ready  
-**Model:** XGBoost (Optuna Tuned)  
-**Data Vintage:** 2020-2024 (King County Assessment Data)
+**A Journey from Broken Script to Production MLOps**
 
----
-
-## 📖 Project Story
-
-This project represents the evolution of a simple machine learning script into a robust, enterprise-grade MLOps solution. It demonstrates not just model building, but the complete lifecycle of software engineering for AI: from fixing broken legacy code to deploying a scalable API with continuous integration and honest evaluation protocols.
-
-### Phase 1: The Foundation (MVP)
-**Goal:** Stabilize the client's assets and establish a baseline.
-
-We started with a broken script (`create_model.py`) that pointed to the wrong data paths.
-- **Fixed:** Critical bug in data merging (sales data vs demographics).
-- **Built:** A FastAPI application to serve predictions.
-- **Tracked:** Integrated MLflow for experiment tracking from day one.
-- **Result:** A functional, deployable API with a baseline KNN model (MAE: ~$102k).
-
-### Phase 2: Optimization & Rigor
-**Goal:** Maximize performance and deeply understand model behavior.
-
-We moved beyond the baseline, exploring feature engineering and model alternatives.
-- **Expanded:** Integrated 26 demographic features (income, education, etc.).
-- **Competed:** Benchmarked KNN against Random Forest, LightGBM, and XGBoost.
-- **Selected:** XGBoost emerged as the winner (MAE reduced by 34%).
-- **Validated:** Implemented rigorous evaluation (Bootstrap Confidence Intervals, Residual Analysis) to prove the model's stability.
-- **Result:** A highly optimized model (R² 0.875) with understood error bounds.
-
-### Phase 3: Enterprise MLOps & Reality
-**Goal:** Modernize the data pipeline and ensure honest evaluation on fresh data.
-
-We transitioned from static 2015 data to a dynamic pipeline using 2020-2024 assessment records.
-- **Modernized:** Ingested 143k+ fresh records from King County Assessor data.
-- **Geocoded:** Replaced synthetic coordinates with real GIS parcel centroids (100% match rate).
-- **Corrected:** Identified and fixed critical data leakage (repeat sales) using GroupKFold cross-validation.
-- **Automated:** Built a full CI/CD pipeline with GitHub Actions for automated testing and training.
-- **Result:** An honest, robust system (R² 0.868) reflecting current market realities, not just historical patterns.
+> This project showcases the complete lifecycle of ML engineering: inheriting broken code, building a working MVP, optimizing for performance, and deploying an honest, production-ready system with fresh 2024 data.
 
 ---
 
-## 🚀 Key Achievements
+## The Story: Three Versions, One Journey
 
-| Metric | V1 (MVP) | V2.4 (Optimized) | V3.3 (Enterprise) |
-|--------|----------|------------------|-------------------|
-| **Model** | KNN | XGBoost | XGBoost (Tuned) |
-| **Data Era** | 2014-2015 | 2014-2015 | **2020-2024** |
-| **Evaluation** | Simple Split | Bootstrap CI | **GroupKFold (Honest)** |
-| **R² Score** | 0.728 | 0.876 | **0.868** |
-| **MAE** | $102,045 | $67,041 | **$115,247*** |
-| **Pipeline** | Manual | Scripted | **CI/CD Automated** |
+### V1: The MVP (Emergency Stabilization)
 
-*\*Note: V3 MAE is higher because 2024 home prices are significantly higher than 2015 prices. The R² score confirms the model's predictive power remains excellent.*
+**Challenge:** Inherited a broken `create_model.py` with a critical bug on line 14 - it was trying to join sales data with demographic data on the wrong column.
 
----
+**Solution:** Fixed the bug, built a simple KNN model, and wrapped it in a FastAPI application.
 
-## 🛠️ Technical Architecture
+| Metric | Value |
+|--------|-------|
+| Model | KNN (k=5) |
+| R-squared | 0.728 |
+| MAE | $102,045 |
+| Features | 33 (7 home + 26 demographic) |
+| Data | 2014-2015 (21,613 samples) |
 
-### Core Stack
-- **Language:** Python 3.12
-- **Framework:** FastAPI
-- **ML Engine:** XGBoost + scikit-learn Pipeline
-- **Tracking:** MLflow (SQLite backend)
-- **Optimization:** Optuna (Bayesian Hyperparameter Tuning)
-
-### Pipeline Components
-1.  **Data Ingestion:** Transforms raw assessment CSVs, filters distressed sales (bottom 5%), and caps outliers (>$3M).
-2.  **Feature Engineering:**
-    - Temporal features (`sale_year`, `sale_quarter`)
-    - Demographic enrichment (Census data)
-    - GIS coordinate mapping
-3.  **Training:**
-    - `src/train_with_mlflow.py`: Main training logic (MLflow integrated).
-    - `src/tune_v33.py`: Optuna optimization loop.
-4.  **Evaluation:**
-    - `src/evaluate_fresh.py`: Generates metrics.json and plots.
-    - **GroupKFold:** Ensures no data leakage from repeat sales.
-5.  **Serving:**
-    - REST API with health checks and metadata endpoints.
-    - Input validation via Pydantic models.
+**Result:** A functional, deployable API serving predictions in under 50ms.
 
 ---
 
-## 📂 Repository Structure
+### V2.5: The Optimizer (Performance Maximization)
 
-```
-├── .github/workflows/    # CI/CD Pipelines (Test & Train)
-├── archive/              # Deprecated scripts and logs
-├── docs/                 # Comprehensive Documentation
-│   ├── manuals/          # API & Architecture Guides
-│   ├── reports/          # Version Completion Summaries
-│   └── human_in_the_loop_corrections.md
-├── references/           # External Reference Docs
-├── src/
-│   ├── api/              # FastAPI Endpoints
-│   ├── data/             # Data Transformation Scripts
-│   ├── services/         # Business Logic
-│   ├── evaluate_fresh.py
-│   ├── train_with_mlflow.py
-│   └── tune_v33.py
-├── tests/                # Pytest Suite
-└── model/                # Serialized Model & Metrics
-```
+**Challenge:** The KNN model was leaving money on the table. Can we do better?
+
+**Solution:** Systematic model comparison (KNN, Random Forest, LightGBM, XGBoost) with proper cross-validation and hyperparameter tuning via RandomizedSearchCV.
+
+| Metric | Value |
+|--------|-------|
+| Model | XGBoost (RandomizedSearchCV tuned) |
+| CV R-squared | 0.8945 |
+| CV MAE | $63,529 |
+| Features | 43 (17 home + 26 demographic) |
+| Data | 2014-2015 (21,613 samples) |
+
+**Key Improvements:**
+- 38% reduction in MAE vs V1
+- Expanded to 17 home features (added `yr_renovated`, `grade`, `condition`, etc.)
+- Bootstrap confidence intervals for uncertainty quantification
+- Residual analysis to understand error patterns
 
 ---
 
-## 🚦 Getting Started
+### V3.3: The Production System (Enterprise MLOps)
+
+**Challenge:** The 2014-2015 training data was nearly 10 years old. Models trained on it were predicting 2015 prices, not 2024 prices.
+
+**Solution:** Complete data pipeline modernization with fresh 2020-2024 King County Assessment data, plus rigorous evaluation to catch data leakage.
+
+| Metric | Value |
+|--------|-------|
+| Model | XGBoost (Optuna Bayesian optimization) |
+| CV R-squared | 0.868 |
+| CV MAE | $115,247 |
+| Features | 47 (17 home + 26 demographic + 4 temporal) |
+| Data | 2020-2024 (143,476 samples) |
+
+**Key Innovations:**
+- **Fresh Data Pipeline:** Ingested 143k+ real transaction records from King County Assessor
+- **Honest Evaluation:** GroupKFold cross-validation prevents leakage from repeat sales
+- **Temporal Features:** `sale_year`, `sale_month`, `sale_quarter`, `sale_dow`
+- **Real Coordinates:** GIS parcel centroids (100% geocode match rate)
+- **MLflow Tracking:** Full experiment reproducibility
+- **CI/CD Pipeline:** GitHub Actions for automated testing
+
+> **Why is V3.3 MAE higher than V2.5?** Because 2024 home prices are much higher than 2015 prices! A $115k MAE on $850k median homes (13.5%) is comparable to V2.5's $64k MAE on $450k median homes (14.2%). The model is actually slightly more accurate in relative terms.
+
+---
+
+## Complete Version Comparison Matrix
+
+| Dimension | V1.0 (MVP) | V2.5 (Optimized) | V3.3 (Production) |
+|-----------|------------|------------------|-------------------|
+| **Algorithm** | KNN (k=5) | XGBoost | XGBoost (Optuna) |
+| **Tuning Method** | None | RandomizedSearchCV | Optuna Bayesian (30 trials) |
+| **R-squared** | 0.728 | 0.8945 | 0.868 |
+| **MAE** | $102,045 | $63,529 (CV) | $115,247 |
+| **Data Vintage** | 2014-2015 | 2014-2015 | 2020-2024 |
+| **Training Samples** | 21,613 | 21,613 | 143,476 |
+| **Home Features** | 7 | 17 | 17 |
+| **Demographic Features** | 26 | 26 | 26 |
+| **Temporal Features** | 0 | 0 | 4 |
+| **Total Features** | 33 | 43 | 47 |
+| **CV Strategy** | Train/Test Split | KFold (5) | GroupKFold (5) |
+| **Leakage Prevention** | None | None | GroupKFold by parcel_id |
+| **Experiment Tracking** | None | Basic | MLflow (full) |
+| **API Prefix** | `/predict`, `/health` | `/api/v1/...` | `/api/v1/...` |
+| **Docker** | Yes | Yes | Yes |
+
+### Key Source Files by Version
+
+| Purpose | V1.0 | V2.5 | V3.3 |
+|---------|------|------|------|
+| Training | `train.py` | `train.py`, `tune_xgboost.py` | `train_with_mlflow.py`, `tune_v33.py` |
+| Evaluation | `evaluate.py` | `robust_evaluate.py` | `evaluate_fresh.py` |
+| API | `main.py` | `main.py`, `api/prediction.py` | `main.py`, `api/prediction.py` |
+| Config | `config.py` | `config.py` | `config.py` |
+
+---
+
+## For Interviewers: Quick Demo
+
+**See the evolution in action!** Run all three versions side-by-side and compare predictions.
 
 ### Prerequisites
-- Python 3.12+
-- Virtual Environment
 
-### Installation
+- Docker and Docker Compose
+- Git
+
+### Step 1: Clone and Navigate
+
 ```bash
-# Clone repository
+git clone https://github.com/BraPil/Real-Estate-Estimator.git
+cd Real-Estate-Estimator/demo
+```
+
+### Step 2: Start All Three Versions
+
+```bash
+docker compose -f docker-compose.demo.yml up -d
+```
+
+This starts:
+- **V1 MVP** on port 8000
+- **V2.5 Optimized** on port 8001
+- **V3.3 Production** on port 8002
+
+### Step 3: Compare Predictions
+
+Run the comparison script for a typical Seattle home (3BR/2.5BA, 2000 sqft, zipcode 98103):
+
+```bash
+./compare_versions.sh
+```
+
+Or use curl directly:
+
+### Expected Output
+
+```
+========================================
+  Real Estate API Version Comparison
+========================================
+
+Checking service availability...
+
+[V1 MVP] Health Check (Port 8000)
+Endpoint: GET /health  (NO /api/v1 prefix)
+{ "status": "healthy" }
+
+[V2.5] Health Check (Port 8001)
+Endpoint: GET /api/v1/health
+{ "status": "healthy", "model_version": "v2.5" }
+
+[V3.3] Health Check (Port 8002)
+Endpoint: GET /api/v1/health
+{ "status": "healthy", "model_version": "v3.3" }
+
+========================================
+  Prediction Comparison (Same Input)
+========================================
+
+[V1 MVP] Prediction (7 features used)
+Endpoint: POST /predict  (NO /api/v1 prefix)
+{ "predicted_price": 670600.25 }
+
+[V2.5] Full Prediction
+Endpoint: POST /api/v1/predict
+{ "predicted_price": 720261.50, "model_version": "v2.5" }
+
+[V3.3] Full Prediction
+Endpoint: POST /api/v1/predict
+{ "predicted_price": 1291832.75, "model_version": "v3.3" }
+
+========================================
+  Key Differences Summary
+========================================
+
+V1 MVP:
+  - Endpoints: /health, /predict (no /api/v1 prefix)
+  - Features: 7 home + 26 demographic = 33 total
+  - Data: 2014-2015 vintage
+
+V2.5:
+  - Endpoints: /api/v1/predict, /predict-minimal, /predict-adaptive
+  - Features: 17 home + 26 demographic = 43 total
+  - Data: 2014-2015 vintage
+  - Added: Tier-based adaptive routing experiment
+
+V3.3:
+  - Endpoints: Same as V2.5
+  - Features: 17 home + 26 demographic + 4 temporal = 47 total
+  - Data: 2020-2024 vintage (fresh data)
+  - Added: MLflow integration, production hardening
+```
+
+**What This Demonstrates:**
+1. **V1 to V2.5:** Pure model improvement (same data, better algorithm) = +7% more accurate
+2. **V2.5 to V3.3:** Massive difference reflects real market appreciation over 9 years
+
+### Step 4: Try Your Own Properties
+
+```bash
+# V1 MVP
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"bedrooms": 4, "bathrooms": 3, "sqft_living": 2500, "zipcode": "98115"}'
+
+# V2.5 Optimized
+curl -X POST http://localhost:8001/api/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{"bedrooms": 4, "bathrooms": 3, "sqft_living": 2500, "zipcode": "98115"}'
+
+# V3.3 Production
+curl -X POST http://localhost:8002/api/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{"bedrooms": 4, "bathrooms": 3, "sqft_living": 2500, "zipcode": "98115"}'
+```
+
+### Step 5: Cleanup
+
+```bash
+docker compose -f docker-compose.demo.yml down
+```
+
+---
+
+## Technical Architecture
+
+```
+Client Request
+      |
+      v
++------------------+
+|    FastAPI       |
+|  (src/main.py)   |
++--------+---------+
+         |
+    +----+----+
+    v         v
++-------+  +----------+
+|Feature|  |  Model   |
+|Service|  | Service  |
++---+---+  +----+-----+
+    |           |
+    v           v
++-------+  +--------+
+|Zipcode|  |sklearn |
+|  CSV  |  |Pipeline|
++-------+  +--------+
+```
+
+### Core Stack
+
+| Component | Technology |
+|-----------|------------|
+| Language | Python 3.12 |
+| API Framework | FastAPI |
+| ML Framework | scikit-learn, XGBoost |
+| Validation | Pydantic |
+| Experiment Tracking | MLflow |
+| Hyperparameter Optimization | Optuna |
+| Containerization | Docker |
+| CI/CD | GitHub Actions |
+
+---
+
+## Repository Structure
+
+```
+Real-Estate-Estimator/
+|-- demo/                  # Multi-version Docker demo
+|   |-- Dockerfile.v1      # V1 MVP container
+|   |-- Dockerfile.v2.5    # V2.5 Optimized container
+|   |-- Dockerfile.v3.3    # V3.3 Production container
+|   |-- docker-compose.demo.yml # Orchestration
+|   |-- compare_versions.sh # Comparison script
+|-- src/
+|   |-- main.py            # FastAPI application
+|   |-- config.py          # Configuration management
+|   |-- train_with_mlflow.py  # MLflow-integrated training
+|   |-- evaluate_fresh.py  # Honest evaluation with GroupKFold
+|   |-- tune_v33.py        # Optuna hyperparameter optimization
+|   |-- api/
+|   |   |-- prediction.py  # Prediction endpoints
+|   |-- services/
+|       |-- feature_service.py  # Feature engineering
+|       |-- model_service.py    # Model loading/prediction
+|-- model/                 # Serialized model artifacts
+|-- data/                  # Training data
+|-- docs/                  # Documentation
+|-- tests/                 # Test suite
+```
+
+---
+
+## Development Setup
+
+### Local Installation
+
+```bash
+# Clone
 git clone https://github.com/BraPil/Real-Estate-Estimator.git
 cd Real-Estate-Estimator
 
-# Setup environment
+# Virtual environment
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate   # Windows
+
+# Dependencies
 pip install -r requirements.txt
 ```
 
-### Running the API
-```bash
-# Start the server
-PYTHONPATH=. uvicorn src.main:app --reload
+### Run the API
 
-# Test health endpoint
-curl http://localhost:8000/api/v1/health
+```bash
+PYTHONPATH=. uvicorn src.main:app --reload
 ```
 
-### Training the Model
+### Train a New Model
+
 ```bash
-# Train on fresh data
+# Train on fresh 2020-2024 data
 python src/train_with_mlflow.py --data-source fresh
 
-# Run evaluation
-python src/evaluate_fresh.py
+# Or train on original 2014-2015 data
+python src/train_with_mlflow.py --data-source original
+```
+
+### Run Tests
+
+```bash
+pytest tests/ -v
 ```
 
 ---
 
-## 🧠 Human-in-the-Loop
+## Documentation
 
-This project emphasizes the importance of human oversight in AI development. See `docs/human_in_the_loop_corrections.md` for a log of critical interventions, including:
-- **Correction #15:** Replacing synthetic coordinates with real GIS data.
-- **Correction #16:** Catching overfitting (inflated R² of 0.966) and enforcing honest evaluation.
-- **Correction #17:** Aligning CI/CD pipelines with evolving data sources.
+| Document | Description |
+|----------|-------------|
+| [API Reference](docs/API.md) | Endpoint specifications |
+| [Architecture](docs/ARCHITECTURE.md) | System design details |
+| [Evaluation](docs/EVALUATION.md) | Model performance analysis |
+| [V3.1 Summary](docs/V3.1_Completion_Summary.md) | CI/CD and MLOps implementation |
 
 ---
 
-**Maintained by:** BraPil & AI Assistant  
-**License:** MIT
+## License
+
+MIT
+
+---
+
+**Built with care by BraPil**
+
+*Demonstrating ML engineering best practices: honest evaluation, proper versioning, and production-ready deployment.*

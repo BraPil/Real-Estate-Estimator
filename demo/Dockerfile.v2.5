@@ -1,0 +1,51 @@
+# Dockerfile for V2.5 - XGBoost with Robust Evaluation
+# Shows: /api/v1/predict, /api/v1/predict-minimal, /api/v1/predict-adaptive
+#
+# V2.5 = XGBoost model (introduced in V2.4) + robust K-fold evaluation
+# Uses 2014-2015 original data
+
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    API_VERSION=2.5
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir pydantic-settings
+
+# Copy V2.5 source code (prepared by setup script)
+COPY demo/v2.5/src ./src/
+
+# Copy shared data files (2014-2015 original data)
+COPY data/kc_house_data.csv ./data/
+COPY data/zipcode_demographics.csv ./data/
+COPY data/future_unseen_examples.csv ./data/
+
+# Train XGBoost model (V2.4+ uses XGBoost, not KNN)
+# 1. Run train.py first to generate model_features.json
+# 2. Then run tune_xgboost.py for the actual XGBoost model
+RUN python src/train.py && \
+    python src/tune_xgboost.py --n-iter 20 && \
+    cp model/model_v2.4.1_xgboost_tuned.pkl model/model.pkl
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')" || exit 1
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

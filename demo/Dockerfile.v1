@@ -1,0 +1,43 @@
+# Dockerfile for V1 MVP - Bare Minimum API
+# Shows: /health, /predict (NO /api/v1 prefix, NO experimental endpoints)
+
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    API_VERSION=1.0
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir pydantic-settings
+
+# Copy V1 source code (hand-crafted MVP)
+COPY demo/v1/src ./src/
+
+# Copy shared data files
+COPY data/ ./data/
+
+# Train the V1 model (7 features only)
+RUN python src/train.py
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+# V1 uses /health directly (no /api/v1 prefix)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

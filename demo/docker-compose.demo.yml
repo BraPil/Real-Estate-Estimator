@@ -1,0 +1,83 @@
+# Docker Compose for Multi-Version Demo
+# Runs V1, V2.5, and V3.3 APIs side-by-side for interview demonstration
+#
+# Usage:
+#   cd demo
+#   docker-compose -f docker-compose.demo.yml up --build
+#
+# Endpoints:
+#   V1 API:   http://localhost:8000  (MVP - bare minimum)
+#   V2.5 API: http://localhost:8001  (Experimental endpoints)
+#   V3.3 API: http://localhost:8002  (Production MLOps)
+#
+# Quick Test:
+#   curl http://localhost:8000/health          # V1 - no /api/v1
+#   curl http://localhost:8001/api/v1/health   # V2.5
+#   curl http://localhost:8002/api/v1/health   # V3.3
+
+services:
+  # V1 MVP - Bare Minimum
+  # Features: /health, /predict (NO /api/v1 prefix)
+  # Model: 7 home features + 26 demographics = 33 total
+  api-v1:
+    build:
+      context: ..
+      dockerfile: demo/Dockerfile.v1
+    container_name: real-estate-v1
+    ports:
+      - "8000:8000"
+    environment:
+      - API_VERSION=1.0
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: unless-stopped
+
+  # V2.5 - Experimental Release
+  # Features: /api/v1/predict, /api/v1/predict-minimal, /api/v1/predict-adaptive
+  # Model: 17 home features + 26 demographics = 43 total
+  api-v2.5:
+    build:
+      context: ..
+      dockerfile: demo/Dockerfile.v2.5
+    container_name: real-estate-v2.5
+    ports:
+      - "8001:8000"
+    environment:
+      - API_VERSION=2.5
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: unless-stopped
+
+  # V3.3 - Production MLOps Release
+  # Features: Same endpoints + MLflow, updated data vintage
+  api-v3.3:
+    build:
+      context: ..
+      dockerfile: demo/Dockerfile.v3.3
+    container_name: real-estate-v3.3
+    ports:
+      - "8002:8000"
+    environment:
+      - API_VERSION=3.3
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: unless-stopped
+
+networks:
+  default:
+    name: real-estate-demo
