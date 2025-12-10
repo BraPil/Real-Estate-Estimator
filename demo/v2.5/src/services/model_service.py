@@ -109,21 +109,18 @@ class ModelService:
             try:
                 with open(metrics_path, "r") as f:
                     metrics = json.load(f)
-                self.model_version = metrics.get("version", "unknown")
-                self.model_type = metrics.get("model_type", "unknown")
+                self.model_version = metrics.get("version", "v2.5")
+                if self.model_version == "unknown":
+                    self.model_version = "v2.5"
+                self.model_type = metrics.get("model_type", "XGBoost")
                 logger.info("Loaded model info from metrics.json: %s (%s)", 
                            self.model_version, self.model_type)
             except Exception as e:
                 logger.warning("Could not read metrics.json: %s", e)
-                self.model_version = "v2.1" if len(self.feature_names) >= 40 else "v1"
+                self.model_version = "v2.5"
         else:
-            # Fallback: detect version based on feature count
-            # V1: 33 features (7 home + 26 demographic)
-            # V2.1+: 43 features (17 home + 26 demographic)
-            if len(self.feature_names) >= 40:
-                self.model_version = "v2.1"
-            else:
-                self.model_version = "v1"
+            # Fallback: V2.5 demo container
+            self.model_version = "v2.5"
         
         self.is_loaded = True
         logger.info(
