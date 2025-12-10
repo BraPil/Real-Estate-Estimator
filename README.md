@@ -8,6 +8,21 @@
 
 ## Quick Start (5 minutes)
 
+### Prerequisites
+
+Before starting, ensure you have installed:
+
+| Tool | Version | Purpose | Install Link |
+|------|---------|---------|--------------|
+| **Git** | 2.0+ | Clone repository | [git-scm.com](https://git-scm.com/downloads) |
+| **Docker Desktop** | 20.0+ | Run containerized APIs | [docker.com/get-started](https://www.docker.com/get-started/) |
+| **Python** | 3.10+ | Run demo scripts | [python.org](https://www.python.org/downloads/) |
+| **pip** | 21.0+ | Install dependencies | Included with Python |
+
+> **Note:** Docker Desktop includes Docker Compose. On Linux, you may need to install `docker-compose-plugin` separately.
+
+### Run the Demo
+
 ```bash
 # Clone
 git clone https://github.com/BraPil/Real-Estate-Estimator.git
