@@ -77,7 +77,7 @@ PREDICTIONS
   Features Used:    43
   Predicted Price:  $337,363
 
-  V3.3 - XGBoost + Optuna (100 trials)
+  V3.3 - XGBoost + Optuna (30 trials)
   --------------------------------------------------
   Model Version:    v3.3
   Training Data:    2020-2024
@@ -91,7 +91,7 @@ COMPARISON SUMMARY
     ---------------------------------------------------------------------------
     1.0.0      KNN (k=5)                           2014-2015    $       414,600
     v2.5       XGBoost + RandomizedSearchCV        2014-2015    $       337,363
-    v3.3       XGBoost + Optuna (100 trials)       2020-2024    $       628,040
+    v3.3       XGBoost + Optuna (30 trials)        2020-2024    $       628,040
 
 ================================================================================
                               ANALYSIS COMPLETE                                 
@@ -249,27 +249,33 @@ Client Request
 
 ```
 Real-Estate-Estimator/
-|-- demo/                  # Multi-version Docker demo
-|   |-- Dockerfile.v1      # V1 MVP container
-|   |-- Dockerfile.v2.5    # V2.5 Optimized container
-|   |-- Dockerfile.v3.3    # V3.3 Production container
-|   |-- docker-compose.demo.yml # Orchestration
-|   |-- compare_versions.sh # Comparison script
+|-- scripts/
+|   |-- compare_by_address.py  # <-- Main demo: address lookup + 3-model comparison
+|   |-- download_kc_data.py    # Optional: refresh King County data
+|-- demo/
+|   |-- Dockerfile.v1          # V1 MVP container
+|   |-- Dockerfile.v2.5        # V2.5 Optimized container
+|   |-- Dockerfile.v3.3        # V3.3 Production container
+|   |-- docker-compose.demo.yml
+|   |-- compare_versions.py    # Sample property comparison
 |-- src/
-|   |-- main.py            # FastAPI application
-|   |-- config.py          # Configuration management
-|   |-- train_with_mlflow.py  # MLflow-integrated training
-|   |-- evaluate_fresh.py  # Honest evaluation with GroupKFold
-|   |-- tune_v33.py        # Optuna hyperparameter optimization
-|   |-- api/
-|   |   |-- prediction.py  # Prediction endpoints
+|   |-- main.py                # FastAPI application
+|   |-- config.py              # Configuration management
+|   |-- train_with_mlflow.py   # MLflow-integrated training
+|   |-- evaluate_fresh.py      # Honest evaluation with GroupKFold
+|   |-- tune_v33.py            # Optuna hyperparameter optimization
+|   |-- api/prediction.py      # Prediction endpoints
 |   |-- services/
-|       |-- feature_service.py  # Feature engineering
-|       |-- model_service.py    # Model loading/prediction
-|-- model/                 # Serialized model artifacts
-|-- data/                  # Training data
-|-- docs/                  # Documentation
-|-- tests/                 # Test suite
+|       |-- feature_service.py     # Feature engineering
+|       |-- model_service.py       # Model loading/prediction
+|       |-- address_service_v2.py  # King County address lookup
+|-- data/
+|   |-- king_county/           # Compressed KC Assessor data (44MB)
+|   |-- kc_house_data.csv      # Original 2014-2015 training data
+|   |-- assessment_2020_plus.csv  # Fresh 2020-2024 data
+|-- model/                     # Serialized model artifacts
+|-- docs/                      # Development documentation
+|-- tests/                     # Test suite
 ```
 
 ---
@@ -278,10 +284,11 @@ Real-Estate-Estimator/
 
 | Document | Description |
 |----------|-------------|
-| [API Reference](docs/API.md) | Endpoint specifications |
-| [Architecture](docs/ARCHITECTURE.md) | System design details |
-| [Evaluation](docs/EVALUATION.md) | Model performance analysis |
-| [V3.1 Summary](docs/V3.1_Completion_Summary.md) | CI/CD and MLOps implementation |
+| [Architecture V1-V2](docs/ARCHITECTURE_REFERENCE-v1-v2.md) | System design evolution |
+| [Architecture V2-V3](docs/ARCHITECTURE_REFERENCE-v2-v3.md) | Production architecture |
+| [Model Evolution V1-V2](docs/MODEL_VERSION_EVOLUTION-v1-v2.md) | Algorithm progression |
+| [Model Evolution V2-V3](docs/MODEL_VERSION_EVOLUTION-v2-v3.md) | Fresh data integration |
+| [Master Log](docs/master_log.md) | Development timeline |
 
 ---
 

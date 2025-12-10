@@ -90,7 +90,7 @@ VERSIONS = [
         "port": 8002,
         "predict_url": "http://localhost:8002/api/v1/predict",
         "health_url": "http://localhost:8002/api/v1/health",
-        "algorithm": "XGBoost + Optuna (100 trials)",
+        "algorithm": "XGBoost + Optuna (30 trials)",
         "data_vintage": "2020-2024",
         "features": 47,
         "description": "Production - Current market data"
@@ -235,7 +235,7 @@ def main():
       - Use case: Better accuracy with same vintage data
     
     {Colors.BOLD}{Colors.GREEN}V3.3 (Production){Colors.END}
-      - Algorithm: XGBoost with Optuna hyperparameter tuning (100 trials)
+      - Algorithm: XGBoost with Optuna hyperparameter tuning (30 trials)
       - Features: 17 home + 26 demographics + 4 temporal = 47 total
       - Endpoint: POST /api/v1/predict
       - Extras: MLflow tracking, model versioning, production hardening
