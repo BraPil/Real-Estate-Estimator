@@ -274,48 +274,6 @@ Real-Estate-Estimator/
 
 ---
 
-## Development Setup
-
-### Local Installation
-
-```bash
-# Clone
-git clone https://github.com/BraPil/Real-Estate-Estimator.git
-cd Real-Estate-Estimator
-
-# Virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate   # Windows
-
-# Dependencies
-pip install -r requirements.txt
-```
-
-### Run the API
-
-```bash
-PYTHONPATH=. uvicorn src.main:app --reload
-```
-
-### Train a New Model
-
-```bash
-# Train on fresh 2020-2024 data
-python src/train_with_mlflow.py --data-source fresh
-
-# Or train on original 2014-2015 data
-python src/train_with_mlflow.py --data-source original
-```
-
-### Run Tests
-
-```bash
-pytest tests/ -v
-```
-
----
-
 ## Documentation
 
 | Document | Description |
