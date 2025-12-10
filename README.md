@@ -327,33 +327,87 @@ python scripts/compare_by_address.py --interactive
 ### Example Output
 
 ```
-============================================================
-       Analyzing: 1523 15th Ave S, Seattle, WA 98144        
-============================================================
+================================================================================
+                   REAL ESTATE ESTIMATOR - ADDRESS LOOKUP                       
+================================================================================
 
-Looking up property: 1523 15th Ave S, Seattle, WA 98144
-Found property: PIN 8850000080
+Timestamp: 2025-12-10 18:47:42
 
---- Property Details ---
-  Address: 1523 15th Ave S, Seattle, WA 98144
-  Bedrooms:    2
-  Bathrooms:   1.0
-  Sqft Living: 1,150
-  Sqft Lot:    3,000
-  Grade:       7
-  Year Built:  1903
-  Zipcode:     98144
+--------------------------------------------------------------------------------
+SERVICE HEALTH CHECK
+--------------------------------------------------------------------------------
+  V1     (Port 8000): HEALTHY
+  V2.5   (Port 8001): HEALTHY
+  V3.3   (Port 8002): HEALTHY
 
---- Model Predictions Comparison ---
-  Model           Predicted Price   Data Vintage
-  ------------ ------------------ ---------------
-  V1 MVP      $     414,600.00       2014-2015
-  V2.5        $     337,363.28       2014-2015
-  V3.3        $     628,040.38       2020-2024  <-- Recommended
+--------------------------------------------------------------------------------
+PROPERTY LOOKUP
+--------------------------------------------------------------------------------
+    Searching: 1523 15th Ave S, Seattle, WA 98144
+    Found property!
 
---- Neighborhood Context ---
-  Zipcode: 98144
-  Area: Beacon Hill/Mt Baker - Light rail, diverse, views
+    PIN:             8850000080
+    Matched Address:  1523 15TH AVE S, Seattle, 98144
+    Geocode Score:    97%
+
+--------------------------------------------------------------------------------
+PROPERTY DETAILS
+--------------------------------------------------------------------------------
+    Location:      Zipcode 98144 (Beacon Hill/Mt Baker - Light rail, diverse, views)
+    Size:          1,150 sqft living space
+    Lot:           3,000 sqft
+    Layout:        2 bedrooms, 1.0 bathrooms, 1.5 floors
+    Year Built:    1903
+    Condition:     3 (1=Poor, 3=Average, 5=Excellent)
+    Grade:         7 (1-13 scale, 7=Average, 10+=Luxury)
+    Basement:      720 sqft
+    Waterfront:    No
+    View Rating:   0/4
+
+--------------------------------------------------------------------------------
+PREDICTIONS
+--------------------------------------------------------------------------------
+  V1 - KNN (k=5)
+  --------------------------------------------------
+  Model Version:    1.0.0
+  Training Data:    2014-2015
+  Features Used:    33
+  Predicted Price:  $414,600
+
+  V2.5 - XGBoost + RandomizedSearchCV
+  --------------------------------------------------
+  Model Version:    v2.5
+  Training Data:    2014-2015
+  Features Used:    43
+  Predicted Price:  $337,363
+
+  V3.3 - XGBoost + Optuna (100 trials)
+  --------------------------------------------------
+  Model Version:    v3.3
+  Training Data:    2020-2024
+  Features Used:    47
+  Predicted Price:  $628,040
+
+--------------------------------------------------------------------------------
+COMPARISON SUMMARY
+--------------------------------------------------------------------------------
+    Version    Algorithm                           Data              Prediction
+    ---------------------------------------------------------------------------
+    1.0.0      KNN (k=5)                           2014-2015    $       414,600
+    v2.5       XGBoost + RandomizedSearchCV        2014-2015    $       337,363
+    v3.3       XGBoost + Optuna (100 trials)       2020-2024    $       628,040
+
+--------------------------------------------------------------------------------
+NEIGHBORHOOD CONTEXT
+--------------------------------------------------------------------------------
+    Zipcode:   98144
+    Area:      Beacon Hill/Mt Baker - Light rail, diverse, views
+    Location:  Central Seattle area
+
+================================================================================
+                              ANALYSIS COMPLETE                                 
+================================================================================
+    Recommended Estimate (V3.3): $628,040
 ```
 
 ### Data Source
