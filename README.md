@@ -147,9 +147,20 @@ COMPARISON SUMMARY
 
 **Solution:** Systematic model comparison (KNN, Random Forest, LightGBM, XGBoost) with proper cross-validation and hyperparameter tuning via RandomizedSearchCV.
 
-**Key Discovery:** The original KNN algorithm was fundamentally limited. Our head-to-head comparison revealed XGBoost reduced prediction error by 38% - a finding that justified the complete algorithm change from V1 to V2.
+**Key Discovery #1 - Unused Features:** The original code only used 7 of 21 available columns, ignoring critical predictors like `grade` (construction quality), `waterfront`, `view`, `condition`, `yr_built`, and `lat/long`. Adding these features alone improved predictions significantly.
+
+**Key Discovery #2 - Algorithm Limitation:** The original KNN algorithm was fundamentally limited. Our head-to-head comparison revealed XGBoost reduced prediction error by 38% - a finding that justified the complete algorithm change from V1 to V2.
+
+| Original V1 Features (7) | Added in V2.5 (10) |
+|--------------------------|---------------------|
+| bedrooms, bathrooms | **grade** (most important!) |
+| sqft_living, sqft_lot | **waterfront**, **view** |
+| floors, sqft_above | **condition**, **yr_built** |
+| sqft_basement | **yr_renovated**, **lat**, **long** |
+| | sqft_living15, sqft_lot15 |
 
 **Tuning Methodology:**
+
 | Technique | Details |
 |-----------|---------|
 | Cross-Validation | 5-fold CV on all model comparisons |
@@ -168,7 +179,7 @@ COMPARISON SUMMARY
 **Key Improvements:**
 
 - 38% reduction in MAE vs V1 (KNN to XGBoost)
-- Expanded to 17 home features (added `yr_renovated`, `grade`, `condition`, etc.)
+- Expanded from 7 to 17 home features (added `grade`, `waterfront`, `view`, `condition`, `yr_built`, `yr_renovated`, `lat`, `long`, etc.)
 - Bootstrap confidence intervals for uncertainty quantification
 - Residual analysis to understand error patterns
 
