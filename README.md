@@ -2,7 +2,7 @@
 
 **A Journey from Broken Script to Production MLOps**
 
-> This project showcases the complete lifecycle of ML engineering: inheriting broken code, building a working MVP, optimizing for performance, and deploying an honest, production-ready system with fresh 2024 data.
+> This project showcases a complete lifecycle of ML engineering: Inheriting a solution in need of a little guidance, building a working MVP, optimizing for performance, and deploying a monitored, evaluated, production-ready system with CI/CD, fresh data and a useful UX.
 
 ---
 
