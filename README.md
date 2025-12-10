@@ -137,73 +137,103 @@ This starts:
 Run the comparison script for a typical Seattle home (3BR/2.5BA, 2000 sqft, zipcode 98103):
 
 ```bash
-./compare_versions.sh
+python3 compare_versions.py
 ```
-
-Or use curl directly:
 
 ### Expected Output
 
 ```
-========================================
-  Real Estate API Version Comparison
-========================================
+================================================================================
+                REAL ESTATE ESTIMATOR - VERSION COMPARISON DEMO                 
+================================================================================
 
-Checking service availability...
+Timestamp: 2025-12-10 05:10:29
 
-[V1 MVP] Health Check (Port 8000)
-Endpoint: GET /health  (NO /api/v1 prefix)
-{ "status": "healthy" }
+--------------------------------------------------------------------------------
+SAMPLE PROPERTY
+--------------------------------------------------------------------------------
 
-[V2.5] Health Check (Port 8001)
-Endpoint: GET /api/v1/health
-{ "status": "healthy", "model_version": "v2.5" }
+    Location:      Zipcode 98103 (Wallingford/Fremont, Seattle)
+    Size:          2,000 sqft living space
+    Layout:        3 bedrooms, 2.5 bathrooms, 2 floors
+    Year Built:    2010
+    Grade:         8 (Good construction quality)
 
-[V3.3] Health Check (Port 8002)
-Endpoint: GET /api/v1/health
-{ "status": "healthy", "model_version": "v3.3" }
+--------------------------------------------------------------------------------
+SERVICE HEALTH CHECK
+--------------------------------------------------------------------------------
+  V1     (Port 8000): HEALTHY
+  V2.5   (Port 8001): HEALTHY
+  V3.3   (Port 8002): HEALTHY
 
-========================================
-  Prediction Comparison (Same Input)
-========================================
+--------------------------------------------------------------------------------
+PREDICTIONS
+--------------------------------------------------------------------------------
 
-[V1 MVP] Prediction (7 features used)
-Endpoint: POST /predict  (NO /api/v1 prefix)
-{ "predicted_price": 670600.25 }
+  V1 - KNN (k=5)
+  --------------------------------------------------
+  Model Version:    1.0.0
+  Training Data:    2014-2015
+  Features Used:    33
+  Predicted Price:  $670,600
 
-[V2.5] Full Prediction
-Endpoint: POST /api/v1/predict
-{ "predicted_price": 720261.50, "model_version": "v2.5" }
+  V2.5 - XGBoost + RandomizedSearchCV
+  --------------------------------------------------
+  Model Version:    v2.5
+  Training Data:    2014-2015
+  Features Used:    43
+  Predicted Price:  $720,261
 
-[V3.3] Full Prediction
-Endpoint: POST /api/v1/predict
-{ "predicted_price": 1291832.75, "model_version": "v3.3" }
+  V3.3 - XGBoost + Optuna (100 trials)
+  --------------------------------------------------
+  Model Version:    v3.3
+  Training Data:    2020-2024
+  Features Used:    47
+  Predicted Price:  $1,291,832
 
-========================================
-  Key Differences Summary
-========================================
+--------------------------------------------------------------------------------
+COMPARISON SUMMARY
+--------------------------------------------------------------------------------
 
-V1 MVP:
-  - Endpoints: /health, /predict (no /api/v1 prefix)
-  - Features: 7 home + 26 demographic = 33 total
-  - Data: 2014-2015 vintage
+    Version    Algorithm                           Data              Prediction
+    ---------------------------------------------------------------------------
+    1.0.0      KNN (k=5)                           2014-2015    $       670,600
+    v2.5       XGBoost + RandomizedSearchCV        2014-2015    $       720,261
+    v3.3       XGBoost + Optuna (100 trials)       2020-2024    $     1,291,832
 
-V2.5:
-  - Endpoints: /api/v1/predict, /predict-minimal, /predict-adaptive
-  - Features: 17 home + 26 demographic = 43 total
-  - Data: 2014-2015 vintage
-  - Added: Tier-based adaptive routing experiment
+--------------------------------------------------------------------------------
+PRICE EVOLUTION ANALYSIS
+--------------------------------------------------------------------------------
 
-V3.3:
-  - Endpoints: Same as V2.5
-  - Features: 17 home + 26 demographic + 4 temporal = 47 total
-  - Data: 2020-2024 vintage (fresh data)
-  - Added: MLflow integration, production hardening
+    V1 -> V2.5:  $     +49,661  (+7.4%)
+                 Better algorithm (XGBoost vs KNN) on same 2014-2015 data
+
+    V2.5 -> V3.3: $    +571,571  (+79.4%)
+                 Fresh 2020-2024 data reflects Seattle's housing boom
+
+    V1 -> V3.3:  $    +621,232  (+92.6%)
+                 Combined effect of algorithm + market appreciation
+
+--------------------------------------------------------------------------------
+PRICE PER SQUARE FOOT
+--------------------------------------------------------------------------------
+
+    V1:    $335/sqft  (2014-2015 Seattle market)
+    V2.5:  $360/sqft  (2014-2015 Seattle market, better model)
+    V3.3:  $646/sqft  (2020-2024 Seattle market)
+    
+    Note: Seattle median home price rose ~80% from 2015 to 2024.
+    V3.3's higher prediction reflects real market appreciation.
+
+================================================================================
+                                 DEMO COMPLETE                                  
+================================================================================
 ```
 
 **What This Demonstrates:**
 1. **V1 to V2.5:** Pure model improvement (same data, better algorithm) = +7% more accurate
 2. **V2.5 to V3.3:** Massive difference reflects real market appreciation over 9 years
+3. **Model Versioning:** All 3 versions run simultaneously - zero downtime for updates
 
 ### Step 4: Try Your Own Properties
 
