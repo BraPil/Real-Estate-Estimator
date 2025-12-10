@@ -490,23 +490,26 @@ async def predict_adaptive(
         404: {"model": ErrorResponse, "description": "Property not found"},
         500: {"model": ErrorResponse, "description": "Internal server error"},
     },
-    summary="Predict Home Price from Address (V4 Feature)",
+    summary="Estimate Home Price by Location (V4.1 Feature)",
     description="""
-    **V4 Feature: Address-Based Prediction**
+    **V4.1 Feature: Location-Based Price Estimation**
 
-    Get a price prediction by providing just a street address. The system will:
-    1. Geocode the address to get coordinates
-    2. Find the nearest property in King County assessor records
-    3. Auto-populate all property features (bedrooms, sqft, grade, etc.)
-    4. Return a prediction using the standard model
+    Get a price estimate by providing a street address. The system will:
+    1. Geocode the address using King County's official geocoder to get the parcel ID (PIN)
+    2. Look up the **exact property** in King County Assessor records (531K+ residential buildings)
+    3. Get the actual property's features (bedrooms, bathrooms, sqft, grade, etc.)
+    4. Return a prediction based on the real property data
 
-    This is the most user-friendly way to get a prediction - no need to know
-    property details like square footage or year built.
+    **Uses authoritative King County Assessor data - same source as eRealProperty.**
+    
+    Use cases:
+    - "What's my home worth?" - Get estimate for your actual property
+    - "What would this property sell for?" - Evaluate any King County address
 
-    **Limitations:**
-    - Only works for King County, WA addresses
-    - Property must exist in our database (125K+ properties)
-    - Uses most recent assessment data for the matched property
+    **Requirements:**
+    - Address must be in King County, WA
+    - Must be a residential property in the Assessor database
+    - Commercial buildings and vacant lots will not match
     """,
 )
 async def predict_by_address(
@@ -526,8 +529,8 @@ async def predict_by_address(
     Returns:
         AddressPredictionResponse with prediction and auto-populated property details
     """
-    # Import here to avoid circular imports and allow lazy loading
-    from src.services.address_service import get_address_service
+    # Use V2 address service (CSV-based, no scraping)
+    from src.services.address_service_v2 import get_address_service_v2
 
     prediction_id = generate_prediction_id()
     logger.info("Address prediction request received. ID: %s, Address: %s", 
@@ -535,7 +538,7 @@ async def predict_by_address(
 
     try:
         # STEP 1: Lookup address and get property data
-        address_service = get_address_service()
+        address_service = get_address_service_v2()
         
         if not address_service.is_loaded:
             raise HTTPException(
@@ -609,16 +612,32 @@ async def predict_by_address(
             predicted_price,
         )
 
+        # Determine confidence note based on data source
+        data_source = property_data.get("_data_source", "")
+        if "EXTR_ResBldg" in data_source or "Assessor" in data_source:
+            confidence_note = (
+                f"Based on exact property data from King County Assessor records. "
+                f"PIN: {property_data.get('_pin', 'N/A')}. "
+                f"Geocode match score: {property_data.get('_geocode_score', 0):.0f}%."
+            )
+            match_confidence = "exact"
+        else:
+            confidence_note = (
+                f"Based on nearest property in King County records "
+                f"({property_data.get('_distance_km', 0)*1000:.0f}m away). "
+                f"This is a neighborhood estimate."
+            )
+            match_confidence = property_data.get("_match_confidence", "unknown")
+
         return AddressPredictionResponse(
             predicted_price=round(predicted_price, 2),
             prediction_id=prediction_id,
             model_version=model_service.model_version,
             property_details=property_details,
-            geocoded_address=property_data.get("_geocoded_address", request.address),
-            match_confidence=property_data.get("_match_confidence", "unknown"),
-            distance_meters=round(property_data.get("_distance_km", 0) * 1000, 1),
-            confidence_note=f"Prediction based on King County assessor records. "
-                           f"Property matched at {property_data.get('_distance_km', 0)*1000:.0f}m from geocoded address.",
+            geocoded_address=property_data.get("_matched_address", request.address),
+            match_confidence=match_confidence,
+            distance_meters=0.0,  # Exact match, no distance
+            confidence_note=confidence_note,
             timestamp=datetime.utcnow(),
         )
 
