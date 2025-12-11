@@ -290,21 +290,6 @@ Prediction: $628,040 (V3.3)
 
 ---
 
-### Human-in-the-Loop: Responsible AI Collaboration
-
-This project documents substantive instances where human oversight improved outcomes:
-
-| Correction | Impact |
-|------------|--------|
-| **ROI vs Complexity (V2.7)** | User recognized 0.17% gain didn't justify 2x model complexity - abandoned tiered approach |
-| **Data Leakage Detection (V3.3)** | User skepticism of 96.6% R² caught repeat-sale leakage - led to GroupKFold |
-| **Real GIS Coordinates (V3.2)** | User provided 844MB GeoJSON with actual parcel coordinates - 8.8% MAE improvement |
-| **Feature Name Schema (V3.1)** | User caught test fixtures using invented names instead of actual feature schema |
-
-Full documentation: [Human-in-the-Loop Corrections](docs/human_in_the_loop_corrections.md)
-
----
-
 ## Complete Version Comparison Matrix
 
 | Dimension | V1.0 (MVP) | V2.5 (Optimized) | V3.3 (Production) | V4.1 (UX) |
