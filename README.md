@@ -183,6 +183,15 @@ COMPARISON SUMMARY
 - Bootstrap confidence intervals for uncertainty quantification
 - Residual analysis to understand error patterns
 
+**Lesson Learned: Knowing When to Stop**
+
+Between V2.5 and V3, we explored **tiered model routing** (V2.7) - training separate specialists for low/mid/high-price homes with a classifier routing predictions. After 6 experimental approaches:
+- Best result: +0.17% MAE improvement
+- Cost: 2x models to maintain, routing logic, increased failure modes
+- Decision: **Abandoned** - insufficient ROI for added complexity
+
+This demonstrates engineering judgment: not all improvements are worth implementing.
+
 ---
 
 ### V3.3: The Production System (Enterprise MLOps)
@@ -216,42 +225,116 @@ COMPARISON SUMMARY
 - **Fresh Data Pipeline:** Ingested 143k+ real transaction records from King County Assessor
 - **Honest Evaluation:** GroupKFold cross-validation prevents leakage from repeat sales
 - **Temporal Features:** `sale_year`, `sale_month`, `sale_quarter`, `sale_dow`
-- **Real Coordinates:** GIS parcel centroids (100% geocode match rate)
+- **Real Coordinates:** GIS parcel centroids from 844MB King County GeoJSON (8.8% MAE improvement over synthetic lat/long)
 - **MLflow Tracking:** Full experiment reproducibility
 - **CI/CD Pipeline:** GitHub Actions for automated testing
+
+**Key Discovery #3 - Data Leakage Detection:**
+
+Initial V3.3 results showed R² = 0.966 - suspiciously high. User skepticism prompted investigation:
+- Found 12.4% repeat sales (same property sold multiple times in dataset)
+- Random train/test split leaked information (property in both sets)
+- Implemented GroupKFold CV splitting by parcel_id
+- Honest R² = 0.868 (still excellent, now trustworthy)
+
+**Same House, Different Data:**
+
+The same property predicts dramatically different prices based on data vintage:
+- 2014-2015 data (V1/V2.5): ~$670,000
+- 2020-2024 data (V3.3): ~$1,290,000
+
+This 92% increase reflects actual King County real estate appreciation, validating why fresh data was essential.
 
 > **Why is V3.3 MAE higher than V2.5?** Because 2024 home prices are much higher than 2015 prices! A $115k MAE on $850k median homes (13.5%) is comparable to V2.5's $64k MAE on $450k median homes (14.2%). The model is actually slightly more accurate in relative terms.
 
 ---
 
+### V4.1: Address-Based Lookup (User Experience)
+
+**Challenge:** Users don't know their exact square footage. Manual feature entry is tedious and error-prone.
+
+**Solution:** Type any King County address, get an instant prediction with property details automatically populated.
+
+| Feature | Implementation |
+|---------|----------------|
+| Geocoding | King County Official Geocoder API |
+| Building Data | EXTR_ResBldg.csv (44MB compressed to 7MB) |
+| Parcel Data | EXTR_Parcel.csv (lot sizes) |
+| Coordinates | ArcGIS Residential Parcels API |
+
+**Key Innovations:**
+
+- **Zero Manual Entry:** Address-to-prediction in one command
+- **Official Data Source:** King County Assessor records (authoritative)
+- **Compressed Storage:** 84% smaller repository with auto-decompression
+- **Fallback Strategy:** CSV text search when API is unavailable
+- **Multi-Model Demo:** `compare_by_address.py` queries all 3 versions simultaneously
+
+**New Component:** `src/services/address_service_v2.py` (606 lines)
+
+```
+User enters: "1523 15th Ave S, Seattle 98144"
+      |
+      v
+KC Geocoder API -> PIN: 8850000080
+      |
+      v
+EXTR_ResBldg.csv -> 2 bed, 1 bath, 1150 sqft, grade 7
+      |
+      v
+EXTR_Parcel.csv -> 3000 sqft lot
+      |
+      v
+Prediction: $628,040 (V3.3)
+```
+
+---
+
+### Human-in-the-Loop: Responsible AI Collaboration
+
+This project documents substantive instances where human oversight improved outcomes:
+
+| Correction | Impact |
+|------------|--------|
+| **ROI vs Complexity (V2.7)** | User recognized 0.17% gain didn't justify 2x model complexity - abandoned tiered approach |
+| **Data Leakage Detection (V3.3)** | User skepticism of 96.6% R² caught repeat-sale leakage - led to GroupKFold |
+| **Real GIS Coordinates (V3.2)** | User provided 844MB GeoJSON with actual parcel coordinates - 8.8% MAE improvement |
+| **Feature Name Schema (V3.1)** | User caught test fixtures using invented names instead of actual feature schema |
+
+Full documentation: [Human-in-the-Loop Corrections](docs/human_in_the_loop_corrections.md)
+
+---
+
 ## Complete Version Comparison Matrix
 
-| Dimension | V1.0 (MVP) | V2.5 (Optimized) | V3.3 (Production) |
-|-----------|------------|------------------|-------------------|
-| **Algorithm** | KNN (k=5) | XGBoost | XGBoost (Optuna) |
-| **Tuning Method** | None | RandomizedSearchCV | Optuna Bayesian (30 trials) |
-| **R-squared** | 0.728 | 0.8945 | 0.868 |
-| **MAE** | $102,045 | $63,529 (CV) | $115,247 |
-| **Data Vintage** | 2014-2015 | 2014-2015 | 2020-2024 |
-| **Training Samples** | 21,613 | 21,613 | 143,476 |
-| **Home Features** | 7 | 17 | 17 |
-| **Demographic Features** | 26 | 26 | 26 |
-| **Temporal Features** | 0 | 0 | 4 |
-| **Total Features** | 33 | 43 | 47 |
-| **CV Strategy** | Train/Test Split | KFold (5) | GroupKFold (5) |
-| **Leakage Prevention** | None | None | GroupKFold by parcel_id |
-| **Experiment Tracking** | None | Basic | MLflow (full) |
-| **API Prefix** | `/predict`, `/health` | `/api/v1/...` | `/api/v1/...` |
-| **Docker** | Yes | Yes | Yes |
+| Dimension | V1.0 (MVP) | V2.5 (Optimized) | V3.3 (Production) | V4.1 (UX) |
+|-----------|------------|------------------|-------------------|-----------|
+| **Algorithm** | KNN (k=5) | XGBoost | XGBoost (Optuna) | XGBoost (Optuna) |
+| **Tuning Method** | None | RandomizedSearchCV | Optuna Bayesian (30 trials) | Same as V3.3 |
+| **R-squared** | 0.728 | 0.8945 | 0.868 | 0.868 |
+| **MAE** | $102,045 | $63,529 (CV) | $115,247 | $115,247 |
+| **Data Vintage** | 2014-2015 | 2014-2015 | 2020-2024 | 2020-2024 |
+| **Training Samples** | 21,613 | 21,613 | 143,476 | 143,476 |
+| **Home Features** | 7 | 17 | 17 | 17 |
+| **Demographic Features** | 26 | 26 | 26 | 26 |
+| **Temporal Features** | 0 | 0 | 4 | 4 |
+| **Total Features** | 33 | 43 | 47 | 47 |
+| **CV Strategy** | Train/Test Split | KFold (5) | GroupKFold (5) | GroupKFold (5) |
+| **Leakage Prevention** | None | None | GroupKFold by parcel_id | GroupKFold by parcel_id |
+| **Experiment Tracking** | None | Basic | MLflow (full) | MLflow (full) |
+| **API Prefix** | `/predict`, `/health` | `/api/v1/...` | `/api/v1/...` | `/api/v1/...` |
+| **Address Lookup** | No | No | No | **Yes** |
+| **Docker** | Yes | Yes | Yes | Yes |
 
 ### Key Source Files by Version
 
-| Purpose | V1.0 | V2.5 | V3.3 |
-|---------|------|------|------|
-| Training | `train.py` | `train.py`, `tune_xgboost.py` | `train_with_mlflow.py`, `tune_v33.py` |
-| Evaluation | `evaluate.py` | `robust_evaluate.py` | `evaluate_fresh.py` |
-| API | `main.py` | `main.py`, `api/prediction.py` | `main.py`, `api/prediction.py` |
-| Config | `config.py` | `config.py` | `config.py` |
+| Purpose | V1.0 | V2.5 | V3.3 | V4.1 |
+|---------|------|------|------|------|
+| Training | `train.py` | `train.py`, `tune_xgboost.py` | `train_with_mlflow.py`, `tune_v33.py` | Same as V3.3 |
+| Evaluation | `evaluate.py` | `robust_evaluate.py` | `evaluate_fresh.py` | Same as V3.3 |
+| API | `main.py` | `main.py`, `api/prediction.py` | `main.py`, `api/prediction.py` | Same + `address_service_v2.py` |
+| Config | `config.py` | `config.py` | `config.py` | Same |
+| Demo | - | - | `compare_versions.py` | `compare_by_address.py` |
 
 ---
 
@@ -318,13 +401,16 @@ Real-Estate-Estimator/
 |   |-- services/
 |       |-- feature_service.py     # Feature engineering
 |       |-- model_service.py       # Model loading/prediction
-|       |-- address_service_v2.py  # King County address lookup
+|       |-- address_service_v2.py  # V4.1: King County address lookup (606 lines)
 |-- data/
-|   |-- king_county/           # Compressed KC Assessor data (44MB)
-|   |-- kc_house_data.csv      # Original 2014-2015 training data
-|   |-- assessment_2020_plus.csv  # Fresh 2020-2024 data
+|   |-- king_county/               # V4.1: Compressed KC Assessor data
+|   |   |-- EXTR_ResBldg.csv.gz    # Building data (7MB, auto-decompresses to 44MB)
+|   |   |-- EXTR_Parcel.csv.gz     # Parcel/lot data
+|   |-- kc_house_data.csv          # Original 2014-2015 training data
+|   |-- assessment_2020_plus.csv   # Fresh 2020-2024 data
 |-- model/                     # Serialized model artifacts
 |-- docs/                      # Development documentation
+|   |-- manuals/               # Technical education and presentation slides
 |-- tests/                     # Test suite
 ```
 
@@ -336,8 +422,12 @@ Real-Estate-Estimator/
 |----------|-------------|
 | [Architecture V1-V2](docs/ARCHITECTURE_REFERENCE-v1-v2.md) | System design evolution |
 | [Architecture V2-V3](docs/ARCHITECTURE_REFERENCE-v2-v3.md) | Production architecture |
+| [Architecture V3-V4](docs/ARCHITECTURE_REFERENCE-v3_3-v4_1.md) | Address lookup service |
 | [Model Evolution V1-V2](docs/MODEL_VERSION_EVOLUTION-v1-v2.md) | Algorithm progression |
 | [Model Evolution V2-V3](docs/MODEL_VERSION_EVOLUTION-v2-v3.md) | Fresh data integration |
+| [Session Log V3-V4](docs/SESSION_LOG_20251210-v3_3-v4_1.md) | Demo and address lookup development |
+| [Technical Education](docs/manuals/TECHNICAL_EDUCATION.md) | Deep-dive into all components |
+| [Presentation Slides](docs/manuals/PRESENTATION_SLIDES.md) | 10-slide presentation (5 client + 5 technical) |
 | [Master Log](docs/master_log.md) | Development timeline |
 
 ---
@@ -348,6 +438,6 @@ MIT
 
 ---
 
-**Built with care by BraPil**
+**Built by [Brandt Pileggi](https://www.linkedin.com/in/brandtpileggi/)**
 
 *Demonstrating ML engineering best practices: honest evaluation, proper versioning, and production-ready deployment.*
